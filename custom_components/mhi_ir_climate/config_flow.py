@@ -9,7 +9,7 @@ import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.components import infrared
 from homeassistant.const import CONF_NAME
-from homeassistant.core import callback
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import selector
 from homeassistant.util import slugify
 
@@ -21,6 +21,7 @@ from .const import (
     DEFAULT_NAME,
     DOMAIN,
 )
+from .entity_validation import async_is_sensor_entity_valid
 from .ir_protocol import DEFAULT_BASE_FRAME_HEX, validate_base_frame_hex
 
 
@@ -51,7 +52,7 @@ class MHIIRClimateConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         errors: dict[str, str] = {}
 
         if user_input is not None:
-            errors = _validate_input(user_input, emitters)
+            errors = _validate_input(self.hass, user_input, emitters)
             if not errors:
                 name = user_input[CONF_NAME]
                 unique_id = f"{slugify(name)}_{user_input[CONF_EMITTER_ENTITY_ID]}"
@@ -78,13 +79,10 @@ class MHIIRClimateOptionsFlow(config_entries.OptionsFlow):
 
         data = {**self.config_entry.data, **self.config_entry.options}
         emitters = set(infrared.async_get_emitters(self.hass))
-        current_emitter = data.get(CONF_EMITTER_ENTITY_ID)
-        if current_emitter:
-            emitters.add(current_emitter)
 
         errors: dict[str, str] = {}
         if user_input is not None:
-            errors = _validate_input(user_input, emitters)
+            errors = _validate_input(self.hass, user_input, emitters)
             if not errors:
                 return self.async_create_entry(title="", data=user_input)
 
@@ -95,13 +93,22 @@ class MHIIRClimateOptionsFlow(config_entries.OptionsFlow):
         )
 
 
-def _validate_input(user_input: dict[str, Any], emitters: set[str]) -> dict[str, str]:
+def _validate_input(
+    hass: HomeAssistant,
+    user_input: dict[str, Any],
+    emitters: set[str],
+) -> dict[str, str]:
     """Validate config flow input."""
 
     errors: dict[str, str] = {}
 
     if user_input[CONF_EMITTER_ENTITY_ID] not in emitters:
         errors[CONF_EMITTER_ENTITY_ID] = "invalid_emitter"
+
+    for key in (CONF_TEMPERATURE_SENSOR, CONF_HUMIDITY_SENSOR):
+        entity_id = user_input.get(key)
+        if entity_id and not async_is_sensor_entity_valid(hass, str(entity_id)):
+            errors[key] = "invalid_sensor"
 
     try:
         validate_base_frame_hex(user_input[CONF_BASE_FRAME_HEX])

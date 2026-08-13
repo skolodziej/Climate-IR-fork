@@ -53,6 +53,8 @@ During setup, choose:
 
 The device model shown in Home Assistant is fixed as **MHI ZSA Series (Avanti)** because the current protocol profile is shared by the tested ZSA/Avanti units.
 
+If a configured infrared emitter, temperature sensor, or humidity sensor is removed or renamed, Home Assistant raises a repair issue for the affected MHI IR Climate entry. Open the integration's **Configure** options to select a valid replacement or clear an optional sensor.
+
 ## 🕹️ Features
 
 - Adds a Home Assistant `climate` entity from the UI.
