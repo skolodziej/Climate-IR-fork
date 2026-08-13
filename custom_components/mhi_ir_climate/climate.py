@@ -51,6 +51,7 @@ from .ir_protocol import (
     DEFAULT_FAN_MODE,
     DEFAULT_LED_BRIGHTNESS,
     FAN_MODES,
+    PRESET_ECO,
     PRESET_NIGHT_SETBACK,
     PRESET_MODES,
     SWING_HORIZONTAL_MODES,
@@ -72,8 +73,10 @@ SUPPORTED_HVAC_MODES = (
 )
 ON_HVAC_MODES = tuple(mode for mode in SUPPORTED_HVAC_MODES if mode != HVACMode.OFF)
 PRESET_HVAC_MODES = (HVACMode.COOL, HVACMode.HEAT, HVACMode.HEAT_COOL)
+ECO_PRESET_HVAC_MODES = (*PRESET_HVAC_MODES, HVACMode.DRY)
 AUTO_CLEAN_HVAC_MODES = (HVACMode.COOL, HVACMode.DRY, HVACMode.HEAT_COOL)
 MODES_WITHOUT_3D_AUTO = (HVACMode.DRY, HVACMode.FAN_ONLY)
+PRESETS_WITHOUT_3D_AUTO = (PRESET_BOOST, PRESET_ECO)
 BOOST_PRESET_SECONDS = 15 * 60
 SWING_3D_AUTO = "3D Auto"
 SWING_STOP = "Stop"
@@ -238,12 +241,8 @@ class MHIIRClimateEntity(ClimateEntity, RestoreEntity):
         self._attr_hvac_mode = mode
         if mode in ON_HVAC_MODES:
             self._last_on_hvac_mode = mode
-        if (
-            mode not in PRESET_HVAC_MODES
-            or (
-                self._attr_preset_mode == PRESET_NIGHT_SETBACK
-                and mode != HVACMode.HEAT
-            )
+        if not _preset_available_for_hvac_mode(
+            cast(str, self._attr_preset_mode), mode
         ):
             self._set_preset_mode_without_ir(PRESET_NONE)
         self._ensure_fan_available_for_mode(mode)
@@ -281,17 +280,27 @@ class MHIIRClimateEntity(ClimateEntity, RestoreEntity):
         if preset_mode not in self._attr_preset_modes:
             raise HomeAssistantError(f"Unsupported preset mode: {preset_mode}")
 
-        if (
-            preset_mode not in (PRESET_NONE, PRESET_NIGHT_SETBACK)
-            and self._attr_hvac_mode not in PRESET_HVAC_MODES
+        if preset_mode not in (PRESET_NONE, PRESET_NIGHT_SETBACK) and not (
+            _preset_available_for_hvac_mode(
+                preset_mode,
+                _coerce_hvac_mode(cast(HVACMode | str, self._attr_hvac_mode)),
+            )
         ):
+            available_modes = (
+                "cool, heat, dry, or heat/cool"
+                if preset_mode == PRESET_ECO
+                else "cool, heat, or heat/cool"
+            )
             raise HomeAssistantError(
-                f"Preset mode {preset_mode} is only available in cool, heat, or heat/cool"
+                f"Preset mode {preset_mode} is only available in {available_modes}"
             )
 
         if preset_mode == PRESET_NIGHT_SETBACK:
             self._attr_hvac_mode = HVACMode.HEAT
             self._last_on_hvac_mode = HVACMode.HEAT
+
+        if preset_mode in PRESETS_WITHOUT_3D_AUTO:
+            self._exit_3d_auto()
 
         self._set_preset_mode_without_ir(preset_mode)
         self.async_write_ha_state()
@@ -316,6 +325,14 @@ class MHIIRClimateEntity(ClimateEntity, RestoreEntity):
 
         if swing_mode not in self._attr_swing_modes:
             raise HomeAssistantError(f"Unsupported swing mode: {swing_mode}")
+        if (
+            swing_mode == SWING_3D_AUTO
+            and self._attr_preset_mode in PRESETS_WITHOUT_3D_AUTO
+        ):
+            raise HomeAssistantError(
+                f"3D Auto is not available while preset mode "
+                f"{self._attr_preset_mode} is active"
+            )
 
         self._set_vertical_swing_mode(swing_mode)
         self.async_write_ha_state()
@@ -331,6 +348,14 @@ class MHIIRClimateEntity(ClimateEntity, RestoreEntity):
         if swing_horizontal_mode not in self._attr_swing_horizontal_modes:
             raise HomeAssistantError(
                 f"Unsupported horizontal swing mode: {swing_horizontal_mode}"
+            )
+        if (
+            swing_horizontal_mode == SWING_3D_AUTO
+            and self._attr_preset_mode in PRESETS_WITHOUT_3D_AUTO
+        ):
+            raise HomeAssistantError(
+                f"3D Auto is not available while preset mode "
+                f"{self._attr_preset_mode} is active"
             )
 
         self._set_horizontal_swing_mode(swing_horizontal_mode)
@@ -411,13 +436,20 @@ class MHIIRClimateEntity(ClimateEntity, RestoreEntity):
                 self._last_swing_horizontal_mode = last_swing_horizontal_mode
 
         self._reconcile_restored_swing_modes(horizontal_was_stored)
-        if self._attr_hvac_mode not in PRESET_HVAC_MODES:
-            self._set_preset_mode_without_ir(PRESET_NONE)
-        elif self._attr_preset_mode == PRESET_NIGHT_SETBACK:
+        if (
+            self._attr_preset_mode == PRESET_NIGHT_SETBACK
+            and self._attr_hvac_mode in PRESET_HVAC_MODES
+        ):
             self._attr_hvac_mode = HVACMode.HEAT
             self._last_on_hvac_mode = HVACMode.HEAT
+        elif not _preset_available_for_hvac_mode(
+            cast(str, self._attr_preset_mode), self._attr_hvac_mode
+        ):
+            self._set_preset_mode_without_ir(PRESET_NONE)
         elif self._attr_preset_mode == PRESET_BOOST:
             self._schedule_boost_preset_reset()
+        if self._attr_preset_mode in PRESETS_WITHOUT_3D_AUTO:
+            self._exit_3d_auto()
         self._ensure_fan_available_for_mode(self._attr_hvac_mode)
         self._ensure_swing_available_for_mode(self._attr_hvac_mode)
 
@@ -567,6 +599,11 @@ class MHIIRClimateEntity(ClimateEntity, RestoreEntity):
         if hvac_mode not in MODES_WITHOUT_3D_AUTO:
             return
 
+        self._exit_3d_auto()
+
+    def _exit_3d_auto(self) -> None:
+        """Restore non-3D swing positions, falling back to Stop."""
+
         if self._attr_swing_mode == SWING_3D_AUTO:
             self._attr_swing_mode = self._last_swing_mode or SWING_STOP
         if self._attr_swing_horizontal_mode == SWING_3D_AUTO:
@@ -698,6 +735,21 @@ def _hvac_mode_to_protocol_mode(hvac_mode: HVACMode) -> str:
     if hvac_mode == HVACMode.HEAT_COOL:
         return "heat_cool"
     return "cool"
+
+
+def _preset_available_for_hvac_mode(
+    preset_mode: str,
+    hvac_mode: HVACMode,
+) -> bool:
+    """Return whether a preset may remain active in an HVAC mode."""
+
+    if preset_mode == PRESET_NONE:
+        return True
+    if preset_mode == PRESET_ECO:
+        return hvac_mode in ECO_PRESET_HVAC_MODES
+    if preset_mode == PRESET_NIGHT_SETBACK:
+        return hvac_mode == HVACMode.HEAT
+    return hvac_mode in PRESET_HVAC_MODES
 
 
 def _clamp_temperature(value: Any) -> int:

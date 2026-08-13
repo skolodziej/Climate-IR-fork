@@ -62,11 +62,13 @@ FAN_CODES: Final = {
 
 PRESET_NONE = "none"
 PRESET_BOOST = "boost"
+PRESET_ECO = "eco"
 PRESET_SILENT = "Silent"
 PRESET_NIGHT_SETBACK = "Night Setback"
 PRESET_MODES: Final = (
     PRESET_NONE,
     PRESET_BOOST,
+    PRESET_ECO,
     PRESET_SILENT,
     PRESET_NIGHT_SETBACK,
 )
@@ -75,6 +77,7 @@ PRESET_KEYS: Final = {
     "none": PRESET_NONE,
     "boost": PRESET_BOOST,
     "powerful": PRESET_BOOST,
+    "eco": PRESET_ECO,
     "silent": PRESET_SILENT,
     "night_setback": PRESET_NIGHT_SETBACK,
     "setback": PRESET_NIGHT_SETBACK,
@@ -85,6 +88,7 @@ SILENT_PRESET_CODE: Final = 0x7F
 NIGHT_SETBACK_PRESET_CODE: Final = 0xBF
 NORMAL_PRESET_CODE: Final = 0xFF
 BOOST_FAN_MASK: Final = 0x08
+ECO_FAN_CODE: Final = 0xF9
 
 LED_BRIGHTNESS_DIM = "Dim"
 LED_BRIGHTNESS_NORMAL = "Normal"
@@ -307,6 +311,9 @@ def build_ac_frame_bytes(
     if preset_mode == PRESET_BOOST:
         frame[FAN_BYTE] = fan_code & ~BOOST_FAN_MASK
         frame[FAN_COMP_BYTE] = frame[FAN_BYTE] ^ 0xFF
+    elif preset_mode == PRESET_ECO:
+        frame[FAN_BYTE] = ECO_FAN_CODE
+        frame[FAN_COMP_BYTE] = ECO_FAN_CODE ^ 0xFF
 
     preset_code = NORMAL_PRESET_CODE
     if preset_mode == PRESET_SILENT:

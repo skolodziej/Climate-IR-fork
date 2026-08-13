@@ -62,11 +62,13 @@ If a configured infrared emitter, temperature sensor, or humidity sensor is remo
 - Supports `off`, `cool`, `heat`, `dry`, `fan only`, and `heat/cool` HVAC modes.
 - Supports target temperatures from 18 C to 30 C in 1 C steps.
 - Supports fan speeds: `Auto`, `Very Low`, `Low`, `Medium`, and `High`.
-- Supports `Boost`, `Silent`, and `Night Setback` climate presets. `Night Setback` switches the entity to heat mode before sending the IR command.
+- Supports `Boost`, `Eco`, `Silent`, and `Night Setback` climate presets. Eco is available in every active mode except fan only, while `Night Setback` switches the entity to heat mode before sending the IR command.
 - Clears `Boost` in Home Assistant state after 15 minutes without sending another IR command.
+- Keeps `Eco` active without a timeout and uses the unit's Eco fan override while preserving the selected fan speed in Home Assistant.
 - Supports vertical swing modes: `3D Auto`, `Stop`, `0 Deg`, `30 Deg`, `45 Deg`, `60 Deg`, `90 Deg`, and `Moving`.
 - Supports horizontal swing modes: `3D Auto`, `Stop`, `Hard Left`, `Left`, `Straight`, `Right`, `Hard Right`, `Wide`, `Narrow`, and `Moving`.
 - Keeps `3D Auto` coupled across both swing axes, while restoring the other axis to its last non-3D mode when a normal swing mode is selected.
+- Exits `3D Auto` when `Boost` or `Eco` is enabled and rejects `3D Auto` requests while either preset remains active.
 - Falls back to the last non-3D swing modes, or `Stop` when unknown, when `dry` or `fan only` mode is active because `3D Auto` is not available in those modes.
 - Restores the last HVAC mode, target temperature, fan mode, preset, and swing mode after Home Assistant restarts.
 
