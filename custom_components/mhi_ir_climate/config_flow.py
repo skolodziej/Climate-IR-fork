@@ -84,11 +84,13 @@ class MHIIRClimateOptionsFlow(config_entries.OptionsFlow):
         if user_input is not None:
             errors = _validate_input(self.hass, user_input, emitters)
             if not errors:
+                for key in (CONF_TEMPERATURE_SENSOR, CONF_HUMIDITY_SENSOR):
+                    user_input.setdefault(key, None)
                 return self.async_create_entry(title="", data=user_input)
 
         return self.async_show_form(
             step_id="init",
-            data_schema=_schema(data),
+            data_schema=_schema(user_input if user_input is not None else data),
             errors=errors,
         )
 
@@ -153,7 +155,11 @@ def _add_optional_entity_selector(
     """Add an optional sensor entity selector to a schema."""
 
     default = defaults.get(key)
-    marker = vol.Optional(key, default=default) if default else vol.Optional(key)
+    marker = (
+        vol.Optional(key, description={"suggested_value": default})
+        if default
+        else vol.Optional(key)
+    )
     schema[marker] = selector.EntitySelector(
         selector.EntitySelectorConfig(domain="sensor"),
     )
