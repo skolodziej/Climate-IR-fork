@@ -1,4 +1,4 @@
-"""Climate platform for MHI IR Climate.
+"""Climate platform for Climate IR.
 
 The entity is protocol agnostic: every vocabulary, rule, and quirk comes from
 the profile selected for the config entry. See `protocols/base.py`.
@@ -68,12 +68,12 @@ async def async_setup_entry(
     """Set up the climate entity for a config entry."""
 
     runtime_data = hass.data[DOMAIN][entry.entry_id]
-    entity = MHIIRClimateEntity(hass, entry, runtime_data)
+    entity = ClimateIREntity(hass, entry, runtime_data)
     runtime_data["climate_entity"] = entity
     async_add_entities([entity])
 
 
-class MHIIRClimateEntity(ClimateEntity, RestoreEntity):
+class ClimateIREntity(ClimateEntity, RestoreEntity):
     """Optimistic MHI climate entity backed by an infrared emitter."""
 
     _attr_has_entity_name = False

@@ -27,7 +27,7 @@ class EcoClimateEntityTest(unittest.IsolatedAsyncioTestCase):
                 "name": "Test AC",
             }
         }
-        entity = climate.MHIIRClimateEntity(object(), entry, data)
+        entity = climate.ClimateIREntity(object(), entry, data)
         entity._async_send_current_state = AsyncMock()
         return entity
 

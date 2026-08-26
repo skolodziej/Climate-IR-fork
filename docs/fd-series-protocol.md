@@ -291,8 +291,8 @@ which is why the frame builder takes them as separate flags rather than as one
 preset. Home Assistant's `preset_mode` is single-select, so the integration only
 ever sends one of them.
 
-`tests/test_fd_protocol.py` reproduces every capture in this table from the frame
-builder in `custom_components/mhi_ir_climate/protocols/mitsubishi_heavy/fdtc_frames.py`, and cross-checks the
+`tests/test_fdtc_frames.py` reproduces every capture in this table from the frame
+builder in `custom_components/climate_ir/protocols/mitsubishi_heavy/fdtc_frames.py`, and cross-checks the
 table in this document against the one in the test so a transcription slip in either
 place fails the suite.
 
@@ -356,7 +356,7 @@ the analysis in this document from an independent source.
 - Bytes are transmitted **LSB first**, and the second four bytes are the complements
   of the first four.
 
-`tests/test_fd_protocol.py` asserts these masks against frames from the builder, so
+`tests/test_fdtc_frames.py` asserts these masks against frames from the builder, so
 the encoding stays pinned to this second source and not only to our own captures.
 
 ### Byte view

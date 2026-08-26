@@ -1,4 +1,4 @@
-"""MHI IR Climate custom integration."""
+"""Climate IR custom integration."""
 
 from __future__ import annotations
 
@@ -24,7 +24,7 @@ ISSUE_INVALID_CONFIGURED_ENTITIES = "invalid_configured_entities"
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Set up MHI IR Climate from a config entry."""
+    """Set up Climate IR from a config entry."""
 
     config = _entry_config(entry)
     profile = get_profile(config.get(CONF_PROTOCOL))

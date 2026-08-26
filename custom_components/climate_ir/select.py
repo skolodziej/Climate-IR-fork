@@ -1,4 +1,4 @@
-"""Select entities for MHI IR Climate.
+"""Select entities for Climate IR.
 
 Built from the SelectControls a protocol profile declares, so a new family
 gets its device-page selects without touching this file.
@@ -29,13 +29,13 @@ async def async_setup_entry(
 
     runtime_data = hass.data[DOMAIN][entry.entry_id]
     async_add_entities(
-        MHIIRSelect(entry, runtime_data, control)
+        ClimateIRSelect(entry, runtime_data, control)
         for control in runtime_data["profile"].controls()
         if isinstance(control, SelectControl)
     )
 
 
-class MHIIRSelect(SelectEntity, RestoreEntity):
+class ClimateIRSelect(SelectEntity, RestoreEntity):
     """A profile-declared select on the device page."""
 
     _attr_entity_category = EntityCategory.CONFIG

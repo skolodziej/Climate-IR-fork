@@ -1,4 +1,4 @@
-"""Config flow for MHI IR Climate."""
+"""Config flow for Climate IR."""
 
 from __future__ import annotations
 
@@ -25,8 +25,8 @@ from .entity_validation import async_is_sensor_entity_valid
 from .protocols import DEFAULT_PROTOCOL, ClimateProfile, all_profiles, get_profile
 
 
-class MHIIRClimateConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
-    """Handle a config flow for MHI IR Climate."""
+class ClimateIRConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
+    """Handle a config flow for Climate IR."""
 
     VERSION = 1
 
@@ -42,7 +42,7 @@ class MHIIRClimateConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     ) -> config_entries.OptionsFlow:
         """Return the options flow."""
 
-        return MHIIRClimateOptionsFlow()
+        return ClimateIROptionsFlow()
 
     async def async_step_user(
         self,
@@ -116,8 +116,8 @@ class MHIIRClimateConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         )
 
 
-class MHIIRClimateOptionsFlow(config_entries.OptionsFlow):
-    """Handle options for MHI IR Climate."""
+class ClimateIROptionsFlow(config_entries.OptionsFlow):
+    """Handle options for Climate IR."""
 
     async def async_step_init(
         self,

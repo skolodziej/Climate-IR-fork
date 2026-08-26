@@ -1,157 +1,109 @@
-# MHI IR Climate
+# Climate IR
 
-![MHI IR Climate logo](custom_components/mhi_ir_climate/brand/logo.png)
+![Climate IR logo](custom_components/climate_ir/brand/logo.png)
 
-[![Validate](https://github.com/skolodziej/MHI-IR-Climate/actions/workflows/validate.yml/badge.svg)](https://github.com/skolodziej/MHI-IR-Climate/actions/workflows/validate.yml)
-[![Tests](https://github.com/skolodziej/MHI-IR-Climate/actions/workflows/tests.yml/badge.svg)](https://github.com/skolodziej/MHI-IR-Climate/actions/workflows/tests.yml)
+[![Validate](https://github.com/skolodziej/Climate-IR/actions/workflows/validate.yml/badge.svg)](https://github.com/skolodziej/Climate-IR/actions/workflows/validate.yml)
+[![Tests](https://github.com/skolodziej/Climate-IR/actions/workflows/tests.yml/badge.svg)](https://github.com/skolodziej/Climate-IR/actions/workflows/tests.yml)
 [![HACS Custom](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://hacs.xyz/docs/faq/custom_repositories/)
 
-MHI IR Climate is a Home Assistant custom integration for controlling Mitsubishi Heavy Industries air conditioners through Home Assistant's native `infrared` platform.
+Climate IR is a Home Assistant custom integration for air conditioners that can only be controlled by infrared. It creates a normal `climate` entity and sends complete IR state frames through Home Assistant's native `infrared` platform.
 
-It creates a normal Home Assistant `climate` entity for an IR-only air conditioner and sends complete Mitsubishi Heavy Industries IR state frames through a selected infrared emitter. It is designed to work with native infrared emitters, including entities provided by [IR Wrapper for Zigbee IR Blasters](https://github.com/tomer2526/IR-Wrapper-for-Zigbee-IR-Bluster).
+It is built as a **platform rather than one device driver**. Air conditioners speak a bewildering number of unrelated IR protocols — Mitsubishi Heavy alone uses several, and they share nothing but the manufacturer's name. So each remote family lives in its own *profile*, and the climate entity, the device controls, and the setup flow read every vocabulary and rule from that profile. Adding a family is a new file, not a change to the integration.
 
-Two indoor unit families are supported. They use completely different IR protocols, so you pick the family when you add the integration:
+**[docs/adding-a-protocol.md](docs/adding-a-protocol.md) is the walkthrough for adding one.**
 
-| Family | Typical units | Remote | Carrier | Frame |
-|---|---|---|---|---|
-| **ZSA / Avanti** | wall-mounted SRK/DXK ZSA | RLA502A700L, RLA502A720 | 38 kHz | 19 bytes |
-| **FD series** | commercial cassettes such as FDTC40VH | PJZ502A030D (RCN-TC-5AW-E3 set) | 36 kHz | 160 bits |
+## 📡 Supported families
 
-The FD protocol is documented in [docs/fd-series-protocol.md](docs/fd-series-protocol.md).
+| Vendor | Model family | Key | Range | Fan | Swing | Presets | Status |
+|---|---|---|---|---|---|---|---|
+| Mitsubishi Heavy | ZSA Series (Avanti) | `zsa` | 18–30 °C | 5 | V+H | 4 | verified |
+| Mitsubishi Heavy | FD Series (PJZ502A030D) | `fd` | 18–30 °C | 5 | V | 4 | verified |
+| Mitsubishi Heavy | SRK ZJ-S Series | `mhi_zj` | 18–30 °C | 6 | V+H | — | untested |
+| Mitsubishi Heavy | SRK ZMP Series | `mhi_zmp` | 18–30 °C | 6 | V+H | — | untested |
+| Mitsubishi Heavy | SRK ZEA Series | `mhi_zea` | 18–30 °C | 7 | V+H | — | untested |
+| Mitsubishi Electric | MSZ-FD | `mel_msz_fd` | 16–31 °C | 6 | V+H | — | untested |
+| Mitsubishi Electric | MSZ-FE | `mel_msz_fe` | 16–31 °C | 6 | V+H | — | untested |
+| Mitsubishi Electric | MSZ-FA | `mel_msz_fa` | 16–31 °C | 6 | V+H | — | untested |
+| Mitsubishi Electric | MSZ-KJ | `mel_msz_kj` | 16–31 °C | 6 | V+H | — | untested |
+| Mitsubishi Electric | MSY | `mel_msy` | 16–31 °C | 6 | V+H | — | untested |
+| Mitsubishi Electric | MSC | `mel_msc` | 16–31 °C | 4 | V | — | untested |
+| Mitsubishi Electric | SEZ-KDXX | `mel_sez_kdxx` | 16–31 °C | 3 | — | — | untested |
 
-## ✅ What You Need
+**Status matters.** `verified` means frames were confirmed against the physical unit. `untested` means the encoding follows a reference description exactly, but nobody has watched a unit respond — the family picker labels these accordingly. If you own one and can confirm it, that is the single most useful contribution to this project.
+
+Fan speeds, swing axes, and preset counts differ per family because the remotes differ; the entity only offers what the selected family can actually encode.
+
+## ✅ What you need
 
 - Home Assistant 2026.4.0 or newer.
 - A native Home Assistant `infrared` emitter entity in the room with the air conditioner.
 - For Tuya/Zosung-style Zigbee IR blasters, install and configure [IR Wrapper for Zigbee IR Blasters](https://github.com/tomer2526/IR-Wrapper-for-Zigbee-IR-Bluster) first.
-- A supported indoor unit: a ZSA/Avanti model using the 19-byte command frame, or an FD-series unit driven by a PJZ502A030D remote.
-- For FD-series units, an emitter that can transmit at **36 kHz**, which is what the integration sends. The same protocol is documented working at 38 kHz on related units, and the receivers are broadband, so a 38 kHz-only blaster may still reach the unit — but 36 kHz is the verified figure.
+- An emitter that can transmit at the family's carrier frequency. Most families use 38 kHz; the MHI FD series uses **36 kHz**. A blaster fixed at the wrong frequency produces correct timings and no response, which is a confusing failure to debug.
 
-## 🧪 Tested Hardware
-
-This integration was built from decoded IR captures for:
-
-- Mitsubishi Heavy Industries DXK09ZSA-W with remote RLA502A720.
-- Mitsubishi Heavy Industries SRK35ZSA-W with remote RLA502A700L.
-- Mitsubishi Heavy Industries FDTC40VH cassette with remote PJZ502A030D.
-- Tuya/Zosung-style Zigbee IR blasters exposed to Home Assistant as native infrared emitters.
-- Broadlink RM4 Mini IR blaster through the official Home Assistant Broadlink integration.
-
-## 🚀 Installation With HACS
+## 🚀 Installation with HACS
 
 1. In Home Assistant, open **HACS**.
 2. Open the three-dot menu and choose **Custom repositories**.
-3. Add `https://github.com/mattbyte/MHI-IR-Climate`.
-4. Select **Integration** as the category.
-5. Download **MHI IR Climate**.
-6. Restart Home Assistant.
-7. Go to **Settings** -> **Devices & services** -> **Add integration** and search for **MHI IR Climate**.
+3. Add `https://github.com/skolodziej/Climate-IR`, category **Integration**.
+4. Download **Climate IR** and restart Home Assistant.
+5. Go to **Settings** → **Devices & services** → **Add integration** and search for **Climate IR**.
 
 ## ⚙️ Configuration
 
 Add one integration entry per air conditioner.
 
-The first step asks for the **indoor unit family**. This selects the IR protocol and cannot be changed afterwards; add a new entry if you picked the wrong one.
+The first step picks the **indoor unit family**. This selects the IR protocol and cannot be changed afterwards — add a new entry if you picked the wrong one.
 
 The second step asks for:
 
-- **Name**: The climate entity name, such as `Living AC`.
-- **Infrared emitter**: The native `infrared` emitter entity in the same room.
-- **Base IR frame** (ZSA/Avanti only): A 19-byte hexadecimal base frame. Most users should leave the default:
+- **Name**: the climate entity name, such as `Living AC`.
+- **Infrared emitter**: the native `infrared` emitter entity in the same room.
+- **Room temperature / humidity sensor**: optional, shown as the entity's current values.
+- Any field the selected family needs of its own. The ZSA family, for example, asks for a 19-byte base frame; most families ask for nothing extra.
 
-```text
-52aec31ae5f609f807ff004db25aa5ff007f80
+If a configured emitter or sensor is removed or renamed, Home Assistant raises a repair issue for the affected entry.
+
+## 🕹️ What the entity offers
+
+Common to every family:
+
+- `off`, `cool`, `heat`, `dry`, `fan only`, and `heat/cool` HVAC modes.
+- A target temperature within the family's range, and the fan speeds and swing positions that family encodes.
+- Restores the last mode, temperature, fan, preset, and swing after a Home Assistant restart.
+
+Beyond that, capability is per family. The two verified families are the richest:
+
+**MHI ZSA / Avanti** — `Boost`, `Eco`, `Silent`, and `Night Setback` presets; vertical and horizontal swing with a coupled `3D Auto` across both axes; `Power LED brightness`, `Installation position`, and `Auto clean` device controls, including clean-cycle commands when powering off.
+
+**MHI FD series** — `Boost` (High Power), `Eco`, `Silent`, and `Night Setback`; one swing axis with four fixed louver positions; a `Reset filter sign` button. `Eco` writes the setpoint the remote forces per mode and keeps it when cleared; `Boost` transmits the mode's extreme value without moving the Home Assistant setpoint, because the unit restores it when High Power ends.
+
+Every family also gets a **Force send IR command** button, for when the physical unit and Home Assistant have drifted apart.
+
+## 📡 How it works
+
+IR air conditioners expect every command to describe the whole desired state, not just the changed setting. When you change anything, the integration builds a complete frame for the selected family and sends it as raw timings through `infrared.async_send_command`.
+
+For Zosung/Tuya Zigbee blasters, the companion Zigbee IR wrapper turns those raw timings into the payload Zigbee2MQTT or ZHA expects.
+
+## ⚠️ Limitations
+
+- IR is one-way. The entity is optimistic and restores its last known state, but it cannot confirm what the unit actually did.
+- Ten of the twelve families are untested against hardware, as marked above.
+- On FD-series units, Night Setback was captured with the power bit cleared. The integration sends the bit with whatever power state Home Assistant holds; verify before relying on it.
+- `Silent`, `Night Setback`, `Boost` and `Eco` are independent bits on FD units and the remote can combine them. A Home Assistant preset is single-select, so the integration sends one at a time; the frame builder itself supports any combination.
+
+## 🛠️ Development
+
+```
+custom_components/climate_ir/
+  protocols/
+    base.py                 the contract a profile implements
+    __init__.py             the registry; one tuple lists the vendor packages
+    mitsubishi_heavy/       profiles + frame builders
+    mitsubishi_electric/    profiles + frame builders
 ```
 
-- **Room temperature sensor**: Optional sensor shown as the climate current temperature.
-- **Room humidity sensor**: Optional sensor shown as the climate current humidity.
-
-The device model shown in Home Assistant follows the selected family: **MHI ZSA Series (Avanti)** or **MHI FD Series (PJZ502A030D)**.
-
-Existing configuration entries from before the FD support was added stay on the ZSA profile and keep working unchanged.
-
-If a configured infrared emitter, temperature sensor, or humidity sensor is removed or renamed, Home Assistant raises a repair issue for the affected MHI IR Climate entry. Open the integration's **Configure** options to select a valid replacement or clear an optional sensor.
-
-## 🕹️ Features
-
-Both families:
-
-- Adds a Home Assistant `climate` entity from the UI.
-- Links each climate entity to a selected native `infrared` emitter entity.
-- Supports `off`, `cool`, `heat`, `dry`, `fan only`, and `heat/cool` HVAC modes.
-- Supports target temperatures from 18 C to 30 C in 1 C steps.
-- Supports fan speeds: `Auto`, `Very Low`, `Low`, `Medium`, and `High`.
-- Restores the last HVAC mode, target temperature, fan mode, preset, and swing mode after Home Assistant restarts.
-
-### ZSA / Avanti
-
-- Supports `Boost`, `Eco`, `Silent`, and `Night Setback` climate presets. Eco is available in every active mode except fan only, while `Night Setback` switches the entity to heat mode before sending the IR command.
-- Clears `Boost` in Home Assistant state after 15 minutes without sending another IR command.
-- Keeps `Eco` active without a timeout and uses the unit's Eco fan override while preserving the selected fan speed in Home Assistant.
-- Supports vertical swing modes: `3D Auto`, `Stop`, `0 Deg`, `30 Deg`, `45 Deg`, `60 Deg`, `90 Deg`, and `Moving`.
-- Supports horizontal swing modes: `3D Auto`, `Stop`, `Hard Left`, `Left`, `Straight`, `Right`, `Hard Right`, `Wide`, `Narrow`, and `Moving`.
-- Keeps `3D Auto` coupled across both swing axes, while restoring the other axis to its last non-3D mode when a normal swing mode is selected.
-- Exits `3D Auto` when `Boost` or `Eco` is enabled and rejects `3D Auto` requests while either preset remains active.
-- Falls back to the last non-3D swing modes, or `Stop` when unknown, when `dry` or `fan only` mode is active because `3D Auto` is not available in those modes.
-- Uses `dry` mode with the auto fan speed, matching the remote.
-
-### FD series
-
-- Sends 160-bit frames on a 36 kHz carrier, with both complement blocks generated for the unit's integrity check.
-- Supports `Boost` (High Power), `Eco`, `Silent`, and `Night Setback` presets. `Boost` and `Eco` are available in `cool`, `heat`, and `heat/cool`; `Silent` and `Night Setback` work in every active mode.
-- `Eco` writes the setpoint the remote forces for the current mode (28 C cooling, 22 C heating, 25 C in heat/cool) and, like the remote, keeps that setpoint when the preset is cleared.
-- `Boost` transmits the mode's extreme value (16 C cooling, 30 C heating) while leaving the Home Assistant setpoint untouched, because the unit restores it when High Power ends.
-- Setting a target temperature while `Boost` or `Eco` is active clears the preset, since the remote refuses temperature input in those states.
-- Supports one swing axis: `Swing` plus the four fixed louver positions `Up`, `Up-Middle`, `Down-Middle`, and `Down`. Turning `Swing` on keeps the last selected position in the frame, as the remote does.
-- Keeps the selected fan speed in `dry` mode.
-
-## 🧰 Device Controls
-
-The integration also adds configuration entities on the device page. Which ones appear depends on the selected family.
-
-Both families:
-
-- **Force send IR command** button for resending the current Home Assistant state when the physical unit and Home Assistant are out of sync.
-
-ZSA / Avanti only:
-
-- **Power LED brightness** select: `Dim`, `Normal`, and `Off`.
-- **Installation position** select: `Left`, `Centre`, and `Right`. This command can only be sent while the air conditioner is off.
-- **Auto clean** switch, including clean-cycle turn-off commands for cool, dry, and heat/cool modes.
-
-FD series only:
-
-- **Reset filter sign** button, which sends one frame with the filter reset bit set.
-
-## 📡 How It Works
-
-IR-controlled air conditioners usually expect every command to describe the whole desired state, not just the changed setting. When you change mode, temperature, fan, swing, preset, or a supported device setting, this integration builds a complete MHI frame and sends it as raw infrared timings through Home Assistant's `infrared.async_send_command` helper.
-
-For Zosung/Tuya Zigbee IR blasters, the companion Zigbee IR wrapper receives those raw timings and converts them into the `ir_code_to_send` payload required by Zigbee2MQTT or ZHA.
-
-## ⚠️ Current Limitations
-
-- Only captured command mappings are implemented, for the two families listed above.
-- IR is one-way. The climate entity is optimistic and restores its last known state, but it cannot confirm what the physical air conditioner actually did.
-- On FD-series units, Night Setback was captured with the power bit cleared. The integration sends the bit with whatever power state Home Assistant holds; verify the behaviour on your unit before relying on it.
-- On FD-series units, `Boost` in `heat/cool` is allowed but was never captured, and the cassette's four air outlets cannot be addressed individually.
-- On FD-series units, `Silent`, `Night Setback`, `Boost`, and `Eco` are independent bits that the physical remote can combine. A Home Assistant preset is single-select, so the integration sends one at a time; the frame builder itself supports any combination.
-
-## 🛠️ Development Notes
-
-The integration is built so that a new remote family is a new file, not a change to the platforms. A **profile** owns one family — the vocabularies its entities may offer, the rules the family imposes, and the encoder that turns state into a frame. The climate entity, the device controls, and the config flow read all of it from the profile.
-
-- `custom_components/mhi_ir_climate/protocols/base.py` — the contract a profile implements.
-- `custom_components/mhi_ir_climate/protocols/__init__.py` — the registry; one tuple lists the families.
-- `custom_components/mhi_ir_climate/protocols/mitsubishi_heavy/`, `protocols/mitsubishi_electric/` — one package per vendor, each listing its profiles.
-- `custom_components/mhi_ir_climate/protocols/mitsubishi_heavy/zm_frames.py` — the ZSA frame builder, based on decoded IR captures and the original working pyscript encoder.
-- `custom_components/mhi_ir_climate/protocols/mitsubishi_heavy/fdtc_frames.py` — the FD frame builder, documented in [docs/fd-series-protocol.md](docs/fd-series-protocol.md).
-
-The frame builders are standalone and free of Home Assistant, which is what lets the capture tests run as plain unit tests. All of them keep the MHI frame manipulation local to this integration and leave IR transport and Zigbee payload encoding to Home Assistant's native infrared emitter layer.
-
-**[docs/adding-a-protocol.md](docs/adding-a-protocol.md) is the walkthrough for adding a family**, including which hooks exist for family quirks and why each one is there.
-
-Run the tests with:
+Frame builders are standalone and free of Home Assistant, which is what lets the capture tests run as plain unit tests.
 
 ```bash
 python -m unittest discover -s tests
@@ -159,4 +111,12 @@ python -m unittest discover -s tests
 
 `tests/test_protocol_contract.py` runs against every registered profile, so a family added later is held to the same rules without anyone writing tests for it: defaults inside their vocabularies, unique control keys, an idempotent reconcile, and a `build_command` that encodes every value the profile advertises.
 
-`tests/test_fd_protocol.py` rebuilds all 24 captured FD frames from the builder and cross-checks its capture table against the one in `docs/fd-series-protocol.md`, so both an encoding change and a transcription slip fail immediately. It also pins the encoding to the bit masks used by [ToniA/arduino-heatpumpir](https://github.com/ToniA/arduino-heatpumpir) for the related FDTCxxVF units, an independent implementation of the same frame.
+`tests/test_fdtc_frames.py` rebuilds all 24 captured FD frames from the builder, cross-checks its capture table against `docs/fd-series-protocol.md`, and pins the encoding to the bit masks of an independent implementation.
+
+Brand assets are generated by `scripts/generate_brand.py` rather than committed as opaque binaries.
+
+## 🙏 Credits
+
+Started as a fork of [mattbyte/MHI-IR-Climate](https://github.com/mattbyte/MHI-IR-Climate), which contributed the ZSA/Avanti support and the original frame encoder.
+
+Protocol descriptions for the families beyond ZSA and FD were read from [ToniA/arduino-heatpumpir](https://github.com/ToniA/arduino-heatpumpir). That project is GPL-2.0 and this one is MIT, so it is used strictly as documentation: protocol facts — timings, bit positions, value codes — are functional descriptions rather than protectable expression, and every implementation here is our own. No code or byte template was copied.

@@ -1,4 +1,4 @@
-"""Regression tests for the FD-series (PJZ502A030D) frame encoding.
+"""Regression tests for the Mitsubishi Heavy FD-series (PJZ502A030D) frames.
 
 Every expected value is a capture of the original remote, taken from
 ``docs/fd-series-protocol.md``.
@@ -32,7 +32,7 @@ sys.modules.setdefault("infrared_protocols.commands", commands)
 PROTOCOL_PATH = (
     Path(__file__).parents[1]
     / "custom_components"
-    / "mhi_ir_climate"
+    / "climate_ir"
     / "protocols"
     / "mitsubishi_heavy"
     / "fdtc_frames.py"

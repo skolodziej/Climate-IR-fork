@@ -42,7 +42,7 @@ class FDClimateEntityTest(unittest.IsolatedAsyncioTestCase):
                 **overrides,
             }
         }
-        return climate.MHIIRClimateEntity(object(), entry, data)
+        return climate.ClimateIREntity(object(), entry, data)
 
     def _sent_bits(self) -> str:
         self.assertTrue(infrared.async_send_command.await_count)
@@ -258,7 +258,7 @@ class ZSAProfileRegressionTest(unittest.IsolatedAsyncioTestCase):
                 "name": "Living AC",
             }
         }
-        return climate.MHIIRClimateEntity(object(), entry, data)
+        return climate.ClimateIREntity(object(), entry, data)
 
     async def test_entries_without_a_protocol_stay_on_zsa(self) -> None:
         entity = self._entity()

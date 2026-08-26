@@ -1,4 +1,4 @@
-"""Regression tests for MHI preset frame encoding."""
+"""Regression tests for the Mitsubishi Heavy ZM/ZSA preset frame encoding."""
 
 from __future__ import annotations
 
@@ -27,7 +27,7 @@ sys.modules.setdefault("infrared_protocols.commands", commands)
 PROTOCOL_PATH = (
     Path(__file__).parents[1]
     / "custom_components"
-    / "mhi_ir_climate"
+    / "climate_ir"
     / "protocols"
     / "mitsubishi_heavy"
     / "zm_frames.py"

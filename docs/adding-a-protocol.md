@@ -169,7 +169,7 @@ vocabulary you advertised but cannot encode.
 
 **Capture tests you write yourself.** Record frames from the real remote,
 changing exactly one setting at a time, and assert the builder reproduces
-them. `tests/test_fd_protocol.py` does this for all 24 FD captures and also
+them. `tests/test_fdtc_frames.py` does this for all 24 FD captures and also
 cross-checks its table against `docs/fd-series-protocol.md`, so a typo in
 either fails the suite.
 

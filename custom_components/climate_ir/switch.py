@@ -1,4 +1,4 @@
-"""Switch entities for MHI IR Climate.
+"""Switch entities for Climate IR.
 
 Built from the SwitchControls a protocol profile declares.
 """
@@ -28,13 +28,13 @@ async def async_setup_entry(
 
     runtime_data = hass.data[DOMAIN][entry.entry_id]
     async_add_entities(
-        MHIIRSwitch(entry, runtime_data, control)
+        ClimateIRSwitch(entry, runtime_data, control)
         for control in runtime_data["profile"].controls()
         if isinstance(control, SwitchControl)
     )
 
 
-class MHIIRSwitch(SwitchEntity, RestoreEntity):
+class ClimateIRSwitch(SwitchEntity, RestoreEntity):
     """A profile-declared switch on the device page."""
 
     _attr_entity_category = EntityCategory.CONFIG

@@ -188,11 +188,11 @@ REPOSITORY_ROOT = Path(__file__).parents[1]
 _install_home_assistant_stubs()
 custom_components = _module("custom_components", package=True)
 custom_components.__path__ = [str(REPOSITORY_ROOT / "custom_components")]
-mhi_package = _module("custom_components.mhi_ir_climate", package=True)
+mhi_package = _module("custom_components.climate_ir", package=True)
 mhi_package.__path__ = [
-    str(REPOSITORY_ROOT / "custom_components" / "mhi_ir_climate")
+    str(REPOSITORY_ROOT / "custom_components" / "climate_ir")
 ]
-climate = importlib.import_module("custom_components.mhi_ir_climate.climate")
+climate = importlib.import_module("custom_components.climate_ir.climate")
 
 __all__ = [
     "ClimateEntityFeature",
@@ -209,9 +209,9 @@ __all__ = [
 
 infrared = sys.modules["homeassistant.components.infrared"]
 fd_protocol = importlib.import_module(
-    "custom_components.mhi_ir_climate.protocols.mitsubishi_heavy.fdtc_frames"
+    "custom_components.climate_ir.protocols.mitsubishi_heavy.fdtc_frames"
 )
-protocols = importlib.import_module("custom_components.mhi_ir_climate.protocols")
-button = importlib.import_module("custom_components.mhi_ir_climate.button")
-select = importlib.import_module("custom_components.mhi_ir_climate.select")
-switch = importlib.import_module("custom_components.mhi_ir_climate.switch")
+protocols = importlib.import_module("custom_components.climate_ir.protocols")
+button = importlib.import_module("custom_components.climate_ir.button")
+select = importlib.import_module("custom_components.climate_ir.select")
+switch = importlib.import_module("custom_components.climate_ir.switch")

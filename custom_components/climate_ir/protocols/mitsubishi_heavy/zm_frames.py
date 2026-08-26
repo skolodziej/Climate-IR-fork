@@ -197,7 +197,7 @@ SWING_HORIZONTAL_MODES: Final = (
 )
 
 
-class MHIIRCommand(Command):
+class MitsubishiHeavyZMCommand(Command):
     """Raw IR command for the HA infrared platform."""
 
     def __init__(
@@ -218,7 +218,7 @@ class MHIIRCommand(Command):
         return list(self._timings)
 
 
-def build_mhi_ir_command(
+def build_zm_command(
     mode: Mode,
     temperature_c: int,
     power_on: bool,
@@ -231,7 +231,7 @@ def build_mhi_ir_command(
     install_position: str | None = None,
     swing_ud: str | None = None,
     swing_lr: str | None = None,
-) -> MHIIRCommand:
+) -> MitsubishiHeavyZMCommand:
     """Build an MHI IR command for Home Assistant's infrared helpers."""
 
     frame = build_ac_frame_bytes(
@@ -249,7 +249,7 @@ def build_mhi_ir_command(
         swing_lr=swing_lr,
     )
     pulses = frame_to_pulses_us(frame)
-    return MHIIRCommand(_pulses_to_signed_timings(pulses))
+    return MitsubishiHeavyZMCommand(_pulses_to_signed_timings(pulses))
 
 
 def validate_base_frame_hex(base_frame_hex: str) -> None:

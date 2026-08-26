@@ -73,7 +73,7 @@ class MSZFDProfile(_MSZProfile):
 
     key = "mel_msz_fd"
     name = "MSZ-FD wall-mounted"
-    device_model = "Mitsubishi Electric MSZ-FD"
+    device_model = "MSZ-FD"
     variant = msz_frames.FD
 
 
@@ -82,7 +82,7 @@ class MSZFEProfile(_MSZProfile):
 
     key = "mel_msz_fe"
     name = "MSZ-FE wall-mounted"
-    device_model = "Mitsubishi Electric MSZ-FE"
+    device_model = "MSZ-FE"
     variant = msz_frames.FE
 
 
@@ -91,7 +91,7 @@ class MSYProfile(_MSZProfile):
 
     key = "mel_msy"
     name = "MSY wall-mounted"
-    device_model = "Mitsubishi Electric MSY"
+    device_model = "MSY"
     variant = msz_frames.MSY
 
 
@@ -100,7 +100,7 @@ class MSZFAProfile(_MSZProfile):
 
     key = "mel_msz_fa"
     name = "MSZ-FA wall-mounted"
-    device_model = "Mitsubishi Electric MSZ-FA"
+    device_model = "MSZ-FA"
     variant = msz_frames.FA
 
 
@@ -109,7 +109,7 @@ class MSZKJProfile(_MSZProfile):
 
     key = "mel_msz_kj"
     name = "MSZ-KJ wall-mounted"
-    device_model = "Mitsubishi Electric MSZ-KJ"
+    device_model = "MSZ-KJ"
     variant = msz_frames.KJ
 
 
@@ -118,7 +118,7 @@ class MSCProfile(_NoPresetProfile):
 
     key = "mel_msc"
     name = "MSC wall-mounted"
-    device_model = "Mitsubishi Electric MSC"
+    device_model = "MSC"
     manufacturer = "Mitsubishi Electric"
 
     fan_modes = tuple(msc_frames.FAN_CODES)
@@ -145,7 +145,7 @@ class SEZKDXXProfile(_NoPresetProfile):
 
     key = "mel_sez_kdxx"
     name = "SEZ-KDXX ducted"
-    device_model = "Mitsubishi Electric SEZ-KDXX"
+    device_model = "SEZ-KDXX"
     manufacturer = "Mitsubishi Electric"
 
     fan_modes = tuple(sez_frames.FAN_CODES)

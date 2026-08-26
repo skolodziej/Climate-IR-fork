@@ -1,10 +1,10 @@
-"""Constants for the MHI IR Climate integration."""
+"""Constants for the Climate IR integration."""
 
 from __future__ import annotations
 
 from homeassistant.const import Platform
 
-DOMAIN = "mhi_ir_climate"
+DOMAIN = "climate_ir"
 PLATFORMS = [Platform.CLIMATE, Platform.SELECT, Platform.BUTTON, Platform.SWITCH]
 
 CONF_BASE_FRAME_HEX = "base_frame_hex"

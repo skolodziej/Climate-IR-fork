@@ -1,4 +1,4 @@
-"""Button entities for MHI IR Climate.
+"""Button entities for Climate IR.
 
 Every family gets the force-send button; the rest come from the ButtonControls
 a protocol profile declares.
@@ -28,9 +28,9 @@ async def async_setup_entry(
 
     runtime_data = hass.data[DOMAIN][entry.entry_id]
 
-    entities: list[ButtonEntity] = [MHIIRForceSendButton(entry, runtime_data)]
+    entities: list[ButtonEntity] = [ClimateIRForceSendButton(entry, runtime_data)]
     entities.extend(
-        MHIIROneShotButton(entry, runtime_data, control)
+        ClimateIROneShotButton(entry, runtime_data, control)
         for control in runtime_data["profile"].controls()
         if isinstance(control, ButtonControl)
     )
@@ -38,7 +38,7 @@ async def async_setup_entry(
     async_add_entities(entities)
 
 
-class _MHIIRButton(ButtonEntity):
+class _ClimateIRButton(ButtonEntity):
     """Shared plumbing for the integration's buttons."""
 
     _attr_entity_category = EntityCategory.CONFIG
@@ -52,7 +52,7 @@ class _MHIIRButton(ButtonEntity):
         return climate_entity
 
 
-class MHIIRForceSendButton(_MHIIRButton):
+class ClimateIRForceSendButton(_ClimateIRButton):
     """Force-send the current climate IR command."""
 
     _attr_name = "Force send IR command"
@@ -70,7 +70,7 @@ class MHIIRForceSendButton(_MHIIRButton):
         await self._climate_entity().async_force_send_current_state()
 
 
-class MHIIROneShotButton(_MHIIRButton):
+class ClimateIROneShotButton(_ClimateIRButton):
     """A profile-declared button that sends one command."""
 
     def __init__(

@@ -46,7 +46,7 @@ class ZSAProfile(ClimateProfile):
 
     key = "zsa"
     name = "ZSA / Avanti wall-mounted"
-    device_model = "MHI ZSA Series (Avanti)"
+    device_model = "ZSA Series (Avanti)"
     verified = True
 
     fan_modes = ir_protocol.FAN_MODES
@@ -242,7 +242,7 @@ class ZSAProfile(ClimateProfile):
     def build_command(self, state: ClimateState) -> Any:
         """Build a ZSA IR command."""
 
-        return ir_protocol.build_mhi_ir_command(
+        return ir_protocol.build_zm_command(
             state.mode,
             state.temperature,
             state.power_on,
@@ -274,7 +274,7 @@ class FDProfile(ClimateProfile):
 
     key = "fd"
     name = "FD series cassette"
-    device_model = "MHI FD Series (PJZ502A030D)"
+    device_model = "FD Series (PJZ502A030D)"
     verified = True
 
     fan_modes = fdtc_frames.FAN_MODES
@@ -469,7 +469,7 @@ class ZJProfile(_ZJFamilyProfile):
 
     key = "mhi_zj"
     name = "SRK ZJ-S wall-mounted"
-    device_model = "MHI SRK ZJ-S Series"
+    device_model = "SRK ZJ-S Series"
     variant = zj_frames.ZJ
 
 
@@ -478,7 +478,7 @@ class ZMPProfile(_ZJFamilyProfile):
 
     key = "mhi_zmp"
     name = "SRK ZMP wall-mounted"
-    device_model = "MHI SRK ZMP Series"
+    device_model = "SRK ZMP Series"
     variant = zj_frames.ZMP
 
 
@@ -487,5 +487,5 @@ class ZEAProfile(_ZJFamilyProfile):
 
     key = "mhi_zea"
     name = "SRK ZEA wall-mounted"
-    device_model = "MHI SRK ZEA Series"
+    device_model = "SRK ZEA Series"
     variant = zj_frames.ZEA
