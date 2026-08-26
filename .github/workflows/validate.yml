@@ -1,0 +1,31 @@
+name: Validate
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+  schedule:
+    # Weekly, so changes to the upstream hassfest and HACS rules surface
+    # even when the repository itself is quiet.
+    - cron: "0 4 * * 1"
+  workflow_dispatch:
+
+jobs:
+  hassfest:
+    name: hassfest
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: home-assistant/actions/hassfest@master
+
+  hacs:
+    name: HACS
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hacs/action@main
+        with:
+          category: integration
+          # This is a custom integration, so it is not in home-assistant/brands.
+          # It ships its own images under custom_components/mhi_ir_climate/brand.
+          ignore: brands
