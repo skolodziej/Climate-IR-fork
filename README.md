@@ -2,6 +2,8 @@
 
 ![MHI IR Climate logo](custom_components/mhi_ir_climate/brand/logo.png)
 
+[![Validate](https://github.com/skolodziej/MHI-IR-Climate/actions/workflows/validate.yml/badge.svg)](https://github.com/skolodziej/MHI-IR-Climate/actions/workflows/validate.yml)
+[![Tests](https://github.com/skolodziej/MHI-IR-Climate/actions/workflows/tests.yml/badge.svg)](https://github.com/skolodziej/MHI-IR-Climate/actions/workflows/tests.yml)
 [![HACS Custom](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://hacs.xyz/docs/faq/custom_repositories/)
 
 MHI IR Climate is a Home Assistant custom integration for controlling Mitsubishi Heavy Industries air conditioners through Home Assistant's native `infrared` platform.
