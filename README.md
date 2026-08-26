@@ -35,6 +35,9 @@ It is built as a **platform rather than one device driver**. Air conditioners sp
 | Panasonic | LKE | `panasonic_lke` | 16–30 °C | 6 | V | 2 | untested |
 | Panasonic | EKE | `panasonic_eke` | 16–30 °C | 6 | V | 2 | untested |
 | Midea | Midea (generic) | `midea` | 17–30 °C | 4 | — | — | untested |
+| Toshiba | Toshiba (generic) | `toshiba` | 17–30 °C | 6 | — | — | untested |
+| Fujitsu | Fujitsu (generic) | `fujitsu` | 16–30 °C | 4 | V+H | 1 | untested |
+| Hitachi | Hitachi (generic) | `hitachi` | 16–32 °C | 5 | V+H | — | untested |
 
 **Status matters.** `verified` means frames were confirmed against the physical unit. `untested` means the encoding follows a reference description exactly, but nobody has watched a unit respond — the family picker labels these accordingly. If you own one and can confirm it, that is the single most useful contribution to this project.
 

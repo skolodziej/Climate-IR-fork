@@ -11,7 +11,16 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 
-from . import daikin, midea, mitsubishi_electric, mitsubishi_heavy, panasonic
+from . import (
+    daikin,
+    fujitsu,
+    hitachi,
+    midea,
+    mitsubishi_electric,
+    mitsubishi_heavy,
+    panasonic,
+    toshiba,
+)
 from .base import (
     ButtonControl,
     ClimateProfile,
@@ -31,6 +40,9 @@ VENDORS: tuple = (
     daikin,
     panasonic,
     midea,
+    toshiba,
+    fujitsu,
+    hitachi,
 )
 
 _PROFILES: dict = {
