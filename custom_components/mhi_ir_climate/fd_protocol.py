@@ -154,9 +154,12 @@ def build_fd_ir_command(
     temperature_c: int,
     power_on: bool,
     fan_mode: str = DEFAULT_FAN_MODE,
-    preset_mode: str = DEFAULT_PRESET_MODE,
     swing_mode: str = DEFAULT_SWING_MODE,
     louver_position: str = DEFAULT_LOUVER_POSITION,
+    silent: bool = False,
+    night_setback: bool = False,
+    high_power: bool = False,
+    eco: bool = False,
     filter_reset: bool = False,
 ) -> MHIFDIRCommand:
     """Build an FD-series IR command for Home Assistant's infrared helpers."""
@@ -166,9 +169,12 @@ def build_fd_ir_command(
         temperature_c,
         power_on,
         fan_mode=fan_mode,
-        preset_mode=preset_mode,
         swing_mode=swing_mode,
         louver_position=louver_position,
+        silent=silent,
+        night_setback=night_setback,
+        high_power=high_power,
+        eco=eco,
         filter_reset=filter_reset,
     )
     return MHIFDIRCommand(bits_to_timings(bits))
@@ -179,24 +185,29 @@ def build_frame_bits(
     temperature_c: int,
     power_on: bool,
     fan_mode: str = DEFAULT_FAN_MODE,
-    preset_mode: str = DEFAULT_PRESET_MODE,
     swing_mode: str = DEFAULT_SWING_MODE,
     louver_position: str = DEFAULT_LOUVER_POSITION,
+    silent: bool = False,
+    night_setback: bool = False,
+    high_power: bool = False,
+    eco: bool = False,
     filter_reset: bool = False,
 ) -> str:
     """Return the 160-bit FD frame for the requested state.
 
     Bits are returned in transmission order, MSB of each block first.
+
+    Silent, Night Setback, High Power and Eco are independent bits on the
+    unit, and the remote does combine them, so they are taken as separate
+    flags here. Mapping them onto Home Assistant's single-select preset is
+    left to the profile layer.
     """
 
     if mode not in MODE_CODES:
         raise ValueError(f"mode must be one of {sorted(MODE_CODES)}")
 
-    preset_mode = normalize_preset_mode(preset_mode)
-    forced_temperature = preset_temperature(preset_mode, mode)
-    temperature = int(
-        temperature_c if forced_temperature is None else forced_temperature
-    )
+    forced = forced_temperature(mode, high_power=high_power, eco=eco)
+    temperature = int(temperature_c if forced is None else forced)
     if not MIN_FIELD_TEMPERATURE <= temperature <= MAX_FIELD_TEMPERATURE:
         raise ValueError(
             f"temperature_c must be {MIN_FIELD_TEMPERATURE}"
@@ -223,11 +234,11 @@ def build_frame_bits(
         + "00000"  # 68-72  unknown
         + "1"  # 73     unknown
         + "000000"  # 74-79  unknown
-        + _bit(preset_mode == PRESET_SILENT)  # 80     silent
+        + _bit(silent)  # 80     silent
         + "001010"  # 81-86  unknown
-        + _bit(preset_mode == PRESET_BOOST)  # 87     high power
-        + _bit(preset_mode == PRESET_ECO)  # 88     eco
-        + _bit(preset_mode == PRESET_NIGHT_SETBACK)  # 89     night setback
+        + _bit(high_power)  # 87     high power
+        + _bit(eco)  # 88     eco
+        + _bit(night_setback)  # 89     night setback
         + "0000000"  # 90-96  unknown
     )
 
@@ -237,13 +248,16 @@ def build_frame_bits(
     return block1 + _invert(block1) + block3 + _invert(block3) + BLOCK5_BITS
 
 
-def preset_temperature(preset_mode: str, mode: str) -> int | None:
-    """Return the setpoint the remote forces for a preset, if any."""
+def forced_temperature(
+    mode: str,
+    high_power: bool = False,
+    eco: bool = False,
+) -> int | None:
+    """Return the setpoint the remote writes for High Power or Eco, if any."""
 
-    preset_mode = normalize_preset_mode(preset_mode)
-    if preset_mode == PRESET_BOOST:
+    if high_power:
         return BOOST_TEMPERATURES.get(mode)
-    if preset_mode == PRESET_ECO:
+    if eco:
         return ECO_TEMPERATURES.get(mode)
     return None
 

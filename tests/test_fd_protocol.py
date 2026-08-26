@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import importlib.util
 from pathlib import Path
+import re
 import sys
 from types import ModuleType
 import unittest
@@ -116,14 +117,12 @@ CAPTURES = (
         "00100000100000000010100000000000",
     ),
     (
-        # The source table labels this capture 20 C, but bits 17-20 encode 18 C.
-        # The captured bits win: the temperature table itself was verified twice.
         "18C, fan only, swing, down, silent",
         dict(
             mode="fan_only",
             temperature_c=18,
             power_on=True,
-            preset_mode="Silent",
+            silent=True,
             swing_mode="Swing",
             louver_position="Down",
         ),
@@ -131,17 +130,20 @@ CAPTURES = (
         "00100000100000010010100000000000",
     ),
     (
-        "night setback, power off",
+        # Silent stays set from the previous capture: the unit treats the two
+        # as independent bits.
+        "night setback with silent, power off",
         dict(
             mode="fan_only",
             temperature_c=18,
             power_on=False,
-            preset_mode="Night Setback",
+            silent=True,
+            night_setback=True,
             swing_mode="Swing",
             louver_position="Down",
         ),
         "10110000000000100100110000001100",
-        "00100000100000000010100010000000",
+        "00100000100000010010100010000000",
     ),
     (
         "30C, fan only, swing, down",
@@ -174,7 +176,7 @@ CAPTURES = (
             mode="cool",
             temperature_c=25,
             power_on=True,
-            preset_mode="boost",
+            high_power=True,
             swing_mode="Swing",
             louver_position="Down",
         ),
@@ -187,7 +189,7 @@ CAPTURES = (
             mode="cool",
             temperature_c=25,
             power_on=True,
-            preset_mode="eco",
+            eco=True,
             swing_mode="Swing",
             louver_position="Down",
         ),
@@ -224,7 +226,7 @@ CAPTURES = (
             mode="heat",
             temperature_c=28,
             power_on=True,
-            preset_mode="eco",
+            eco=True,
             swing_mode="Swing",
             louver_position="Down",
         ),
@@ -249,7 +251,7 @@ CAPTURES = (
             mode="heat_cool",
             temperature_c=20,
             power_on=True,
-            preset_mode="eco",
+            eco=True,
             swing_mode="Swing",
             louver_position="Down",
         ),
@@ -286,7 +288,7 @@ CAPTURES = (
             mode="heat",
             temperature_c=25,
             power_on=True,
-            preset_mode="boost",
+            high_power=True,
             swing_mode="Swing",
             louver_position="Down",
         ),
@@ -402,7 +404,7 @@ class FDFrameEncodingTest(unittest.TestCase):
 
     def test_timings_round_trip_through_decoder(self) -> None:
         bits = fd_protocol.build_frame_bits(
-            "cool", 24, True, preset_mode="Silent", swing_mode="Swing"
+            "cool", 24, True, silent=True, swing_mode="Swing"
         )
         timings = fd_protocol.bits_to_timings(bits)
 
@@ -418,6 +420,31 @@ class FDFrameEncodingTest(unittest.TestCase):
         self.assertEqual(command.modulation, 36_000)
         self.assertEqual(command.repeat_count, 0)
         self.assertEqual(len(command.get_raw_timings()), 325)
+
+    def test_capture_table_matches_the_protocol_document(self) -> None:
+        """The table here and the one in the docs must not drift apart."""
+
+        document = (
+            Path(__file__).parents[1] / "docs" / "fd-series-protocol.md"
+        ).read_text()
+        row = re.compile(
+            r"^\|\s*(\d+)\s*\|[^|]+\|\s*`([01]{32})`\s*\|\s*`([01]{32})`\s*\|",
+            re.M,
+        )
+        documented = [
+            (int(number), block1, block3)
+            for number, block1, block3 in row.findall(document)
+        ]
+
+        self.assertEqual(
+            [number for number, _, _ in documented],
+            list(range(1, len(documented) + 1)),
+            "captures in the document must be numbered without gaps",
+        )
+        self.assertEqual(
+            [(block1, block3) for _, block1, block3 in documented],
+            [(block1, block3) for _, _, block1, block3 in CAPTURES],
+        )
 
     def test_invalid_inputs_are_rejected(self) -> None:
         with self.assertRaises(ValueError):

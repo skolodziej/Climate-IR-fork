@@ -278,18 +278,20 @@ are the complements of the preceding block, B5 is always
 | 19 | like 18, eco off | `10110000000000100110001100001100` | `00100000100000000010100000000000` |
 | 20 | 25 °C, auto, swing, bottom, eco | `10110000000000101001000100001100` | `00100000100000000010100100000000` |
 | 21 | like 20, eco off | `10110000000000101001000100001100` | `00100000100000000010100000000000` |
-| 22 | 16 °C, cool, swing, bottom, high power | `10110000000000100000010100001100` | `00100000100000000010101000000000` |
-| 23 | 25 °C, cool, swing, bottom (HP off) | `10110000000000101001010100001100` | `00100000100000000010100000000000` |
-| 24 | 30 °C, heat, swing, bottom, high power | `10110000000000100111001100001100` | `00100000100000000010101000000000` |
-| 25 | 25 °C, heat, swing, bottom (HP off) | `10110000000000101001001100001100` | `00100000100000000010100000000000` |
+| 22 | 25 °C, cool, swing, bottom (HP off) | `10110000000000101001010100001100` | `00100000100000000010100000000000` |
+| 23 | 30 °C, heat, swing, bottom, high power | `10110000000000100111001100001100` | `00100000100000000010101000000000` |
+| 24 | 25 °C, heat, swing, bottom (HP off) | `10110000000000101001001100001100` | `00100000100000000010100000000000` |
 
-> Captures 10 and 11 were originally labelled 20 °C, but their temperature field is
-> `0100`, which is value 2 and therefore 18 °C. The captured bits are taken as the
-> truth here: the temperature table was verified in two independent sweeps and the
-> other 23 captures agree with it, so the label is the part that is wrong.
+Capture 11 carries both Silent and Night Setback: bit 80 stays set from capture 10.
+The two functions are independent bits on the unit and the remote does combine them,
+which is why the frame builder takes them as separate flags rather than as one
+preset. Home Assistant's `preset_mode` is single-select, so the integration only
+ever sends one of them.
 
 `tests/test_fd_protocol.py` reproduces every capture in this table from the frame
-builder in `custom_components/mhi_ir_climate/fd_protocol.py`.
+builder in `custom_components/mhi_ir_climate/fd_protocol.py`, and cross-checks the
+table in this document against the one in the test so a transcription slip in either
+place fails the suite.
 
 Full frame 1 as a raw sequence for direct comparison:
 

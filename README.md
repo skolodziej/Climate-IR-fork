@@ -133,6 +133,7 @@ For Zosung/Tuya Zigbee IR blasters, the companion Zigbee IR wrapper receives tho
 - IR is one-way. The climate entity is optimistic and restores its last known state, but it cannot confirm what the physical air conditioner actually did.
 - On FD-series units, Night Setback was captured with the power bit cleared. The integration sends the bit with whatever power state Home Assistant holds; verify the behaviour on your unit before relying on it.
 - On FD-series units, `Boost` in `heat/cool` is allowed but was never captured, and the cassette's four air outlets cannot be addressed individually.
+- On FD-series units, `Silent`, `Night Setback`, `Boost`, and `Eco` are independent bits that the physical remote can combine. A Home Assistant preset is single-select, so the integration sends one at a time; the frame builder itself supports any combination.
 
 ## 🛠️ Development Notes
 
@@ -149,4 +150,4 @@ Run the tests with:
 python -m unittest discover -s tests
 ```
 
-`tests/test_fd_protocol.py` rebuilds all 25 captured FD frames from the builder, so a change that breaks the encoding fails immediately.
+`tests/test_fd_protocol.py` rebuilds all 24 captured FD frames from the builder and cross-checks its capture table against the one in `docs/fd-series-protocol.md`, so both an encoding change and a transcription slip fail immediately.

@@ -232,23 +232,33 @@ class FDProfile(ClimateProfile):
         if preset_mode != fd_protocol.PRESET_ECO:
             return None
 
-        return fd_protocol.preset_temperature(
-            preset_mode,
+        return fd_protocol.forced_temperature(
             hvac_mode_to_protocol_mode(hvac_mode),
+            eco=True,
         )
 
     def build_command(self, request: CommandRequest) -> Any:
-        """Build an FD IR command."""
+        """Build an FD IR command.
+
+        The unit treats Silent, Night Setback, High Power and Eco as
+        independent bits, but a Home Assistant preset is single-select, so
+        exactly one of them is ever set here.
+        """
+
+        preset_mode = fd_protocol.normalize_preset_mode(request.preset_mode)
 
         return fd_protocol.build_fd_ir_command(
             request.mode,
             request.temperature,
             request.power_on,
             fan_mode=request.fan_mode,
-            preset_mode=request.preset_mode,
             swing_mode=request.swing_mode or fd_protocol.DEFAULT_SWING_MODE,
             louver_position=request.louver_position
             or fd_protocol.DEFAULT_LOUVER_POSITION,
+            silent=preset_mode == fd_protocol.PRESET_SILENT,
+            night_setback=preset_mode == fd_protocol.PRESET_NIGHT_SETBACK,
+            high_power=preset_mode == fd_protocol.PRESET_BOOST,
+            eco=preset_mode == fd_protocol.PRESET_ECO,
             filter_reset=request.filter_reset,
         )
 
