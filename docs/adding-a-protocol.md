@@ -63,6 +63,29 @@ independent bits and the remote combines them; modelling them as one
 single-select preset in the builder made a captured frame impossible to
 reproduce. Map onto Home Assistant's single-select preset in the profile.
 
+### One builder, several variants
+
+Look before you split. Several vendors turn out to have **one stable frame
+format across their whole range**, with models differing only in a few
+template bytes:
+
+| Vendor | Shape |
+|---|---|
+| Panasonic | one 27-byte frame; DKE, JKE, NKE, LKE and EKE differ in a handful of bytes, and only DKE aims the horizontal louver |
+| Daikin | one 35-byte frame across the split range |
+| Midea | one three-byte frame, also sold under many other brand names |
+| Mitsubishi Heavy | *not* generic — the ZM, ZJ and FDTC frames are genuinely different formats |
+
+Where a vendor is generic, write **one builder with a small `Variant`
+descriptor** and one thin profile per model, rather than a builder per model.
+`panasonic_frames.Variant` carries only what actually differs: the bytes the
+model pins, whether it reverses the setpoint, whether it has a horizontal
+louver. Five models cost five ten-line profiles that way.
+
+Mitsubishi Heavy is the counter-example and the reason the abstraction sits at
+the profile rather than the vendor: its families share a manufacturer and
+nothing else.
+
 ## Step 2: the profile
 
 ```python
