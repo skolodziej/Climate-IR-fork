@@ -1,14 +1,20 @@
 {
   "domain": "mhi_ir_climate",
   "name": "MHI IR Climate",
-  "version": "0.2.0",
-  "documentation": "https://github.com/mattbyte/MHI-IR-Climate",
-  "issue_tracker": "https://github.com/mattbyte/MHI-IR-Climate/issues",
-  "codeowners": ["@mattbyte"],
-  "dependencies": ["infrared"],
-  "after_dependencies": ["z2m_ir_bridge"],
-  "requirements": [],
+  "after_dependencies": [
+    "z2m_ir_bridge"
+  ],
+  "codeowners": [
+    "@mattbyte"
+  ],
   "config_flow": true,
+  "dependencies": [
+    "infrared"
+  ],
+  "documentation": "https://github.com/mattbyte/MHI-IR-Climate",
+  "integration_type": "device",
   "iot_class": "assumed_state",
-  "integration_type": "device"
+  "issue_tracker": "https://github.com/mattbyte/MHI-IR-Climate/issues",
+  "requirements": [],
+  "version": "0.2.0"
 }
