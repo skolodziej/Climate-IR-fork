@@ -152,7 +152,12 @@ def _profile_label(profile: ClimateProfile) -> str:
     """Label a family, flagging the ones nobody has confirmed on hardware."""
 
     label = f"{profile.name} ({profile.device_model})"
-    return label if profile.verified else f"{label} — untested"
+    if profile.verification == "hardware":
+        return label
+    if profile.verification == "captures":
+        return f"{label} — checked against recordings"
+
+    return f"{label} — untested"
 
 
 def _validate_input(

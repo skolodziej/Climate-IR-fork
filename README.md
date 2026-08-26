@@ -18,7 +18,7 @@ It is built as a **platform rather than one device driver**. Air conditioners sp
 |---|---|---|---|---|---|---|---|
 | Mitsubishi Heavy | ZSA Series (Avanti) | `zsa` | 18–30 °C | 5 | V+H | 4 | verified |
 | Mitsubishi Heavy | FD Series (PJZ502A030D) | `fd` | 18–30 °C | 5 | V | 4 | verified |
-| Mitsubishi Heavy | SRK ZJ-S Series | `mhi_zj` | 18–30 °C | 6 | V+H | — | untested |
+| Mitsubishi Heavy | SRK ZJ-S Series | `mhi_zj` | 18–30 °C | 6 | V+H | — | capture-checked |
 | Mitsubishi Heavy | SRK ZMP Series | `mhi_zmp` | 18–30 °C | 6 | V+H | — | untested |
 | Mitsubishi Heavy | SRK ZEA Series | `mhi_zea` | 18–30 °C | 7 | V+H | — | untested |
 | Mitsubishi Electric | MSZ-FD | `mel_msz_fd` | 16–31 °C | 6 | V+H | — | untested |
@@ -39,7 +39,7 @@ It is built as a **platform rather than one device driver**. Air conditioners sp
 | Fujitsu | Fujitsu (generic) | `fujitsu` | 16–30 °C | 4 | V+H | 1 | untested |
 | Hitachi | Hitachi (generic) | `hitachi` | 16–32 °C | 5 | V+H | — | untested |
 
-**Status matters.** `verified` means frames were confirmed against the physical unit. `untested` means the encoding follows a reference description exactly, but nobody has watched a unit respond — the family picker labels these accordingly. If you own one and can confirm it, that is the single most useful contribution to this project.
+**Status matters**, and there are three levels. `verified` means frames were confirmed against the physical unit. `capture-checked` means the encoder reproduces frames that somebody else recorded from a real remote — strong evidence, but nobody has watched *this* code drive a unit. `untested` means it follows a reference description and has never been checked at all. The family picker labels each accordingly. If you own one and can confirm it, that is the single most useful contribution to this project.
 
 Fan speeds, swing axes, and preset counts differ per family because the remotes differ; the entity only offers what the selected family can actually encode.
 
@@ -98,7 +98,7 @@ For Zosung/Tuya Zigbee blasters, the companion Zigbee IR wrapper turns those raw
 ## ⚠️ Limitations
 
 - IR is one-way. The entity is optimistic and restores its last known state, but it cannot confirm what the unit actually did.
-- Most families are untested against hardware, as marked above. Only the two Mitsubishi Heavy families have been confirmed on real units.
+- Most families are untested against hardware, as marked above. Only the two Mitsubishi Heavy families have been confirmed on real units, and one more is checked against recordings.
 - On FD-series units, Night Setback was captured with the power bit cleared. The integration sends the bit with whatever power state Home Assistant holds; verify before relying on it.
 - `Silent`, `Night Setback`, `Boost` and `Eco` are independent bits on FD units and the remote can combine them. A Home Assistant preset is single-select, so the integration sends one at a time; the frame builder itself supports any combination.
 
@@ -120,6 +120,8 @@ python -m unittest discover -s tests
 ```
 
 `tests/test_protocol_contract.py` runs against every registered profile, so a family added later is held to the same rules without anyone writing tests for it: defaults inside their vocabularies, unique control keys, an idempotent reconcile, and a `build_command` that encodes every value the profile advertises.
+
+`tests/test_smartir_captures.py` checks encoders against frames decoded from [SmartIR](https://github.com/smartHomeHub/SmartIR)'s MIT-licensed Broadlink database — recordings of physical remotes made by people with no connection to this project, which is far stronger evidence than agreeing with the reference description an encoder was written from.
 
 `tests/test_fdtc_frames.py` rebuilds all 24 captured FD frames from the builder, cross-checks its capture table against `docs/fd-series-protocol.md`, and pins the encoding to the bit masks of an independent implementation.
 

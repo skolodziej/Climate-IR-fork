@@ -1,0 +1,1100 @@
+{
+  "source": "smartHomeHub/SmartIR, codes/climate/1680.json (MIT)",
+  "note": "Broadlink captures of a real SRK25ZJ-S1 remote, decoded to frame bytes. The remote forces the auto fan speed in dry mode, so every dry capture carries it regardless of the fan that was asked for.",
+  "profile": "mhi_zj",
+  "swing_horizontal_mode": "Stop",
+  "captures": [
+    {
+      "mode": "cool",
+      "fan_mode": "Low",
+      "temperature_c": 18,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00A758E619"
+    },
+    {
+      "mode": "cool",
+      "fan_mode": "Low",
+      "temperature_c": 19,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00A758D629"
+    },
+    {
+      "mode": "cool",
+      "fan_mode": "Low",
+      "temperature_c": 20,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00A758C639"
+    },
+    {
+      "mode": "cool",
+      "fan_mode": "Low",
+      "temperature_c": 21,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00A758B649"
+    },
+    {
+      "mode": "cool",
+      "fan_mode": "Low",
+      "temperature_c": 22,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00A758A659"
+    },
+    {
+      "mode": "cool",
+      "fan_mode": "Low",
+      "temperature_c": 23,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00A7589669"
+    },
+    {
+      "mode": "cool",
+      "fan_mode": "Low",
+      "temperature_c": 24,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00A7588679"
+    },
+    {
+      "mode": "cool",
+      "fan_mode": "Low",
+      "temperature_c": 25,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00A7587689"
+    },
+    {
+      "mode": "cool",
+      "fan_mode": "Low",
+      "temperature_c": 26,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00A7586699"
+    },
+    {
+      "mode": "cool",
+      "fan_mode": "Low",
+      "temperature_c": 27,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00A75856A9"
+    },
+    {
+      "mode": "cool",
+      "fan_mode": "Low",
+      "temperature_c": 28,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00A75846B9"
+    },
+    {
+      "mode": "cool",
+      "fan_mode": "Low",
+      "temperature_c": 29,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00A75836C9"
+    },
+    {
+      "mode": "cool",
+      "fan_mode": "Low",
+      "temperature_c": 30,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00A75826D9"
+    },
+    {
+      "mode": "cool",
+      "fan_mode": "Medium",
+      "temperature_c": 18,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF008778E619"
+    },
+    {
+      "mode": "cool",
+      "fan_mode": "Medium",
+      "temperature_c": 19,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF008778D629"
+    },
+    {
+      "mode": "cool",
+      "fan_mode": "Medium",
+      "temperature_c": 20,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF008778C639"
+    },
+    {
+      "mode": "cool",
+      "fan_mode": "Medium",
+      "temperature_c": 21,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF008778B649"
+    },
+    {
+      "mode": "cool",
+      "fan_mode": "Medium",
+      "temperature_c": 22,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF008778A659"
+    },
+    {
+      "mode": "cool",
+      "fan_mode": "Medium",
+      "temperature_c": 23,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF0087789669"
+    },
+    {
+      "mode": "cool",
+      "fan_mode": "Medium",
+      "temperature_c": 24,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF0087788679"
+    },
+    {
+      "mode": "cool",
+      "fan_mode": "Medium",
+      "temperature_c": 25,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF0087787689"
+    },
+    {
+      "mode": "cool",
+      "fan_mode": "Medium",
+      "temperature_c": 26,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF0087786699"
+    },
+    {
+      "mode": "cool",
+      "fan_mode": "Medium",
+      "temperature_c": 27,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00877856A9"
+    },
+    {
+      "mode": "cool",
+      "fan_mode": "Medium",
+      "temperature_c": 28,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00877846B9"
+    },
+    {
+      "mode": "cool",
+      "fan_mode": "Medium",
+      "temperature_c": 29,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00877836C9"
+    },
+    {
+      "mode": "cool",
+      "fan_mode": "Medium",
+      "temperature_c": 30,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00877826D9"
+    },
+    {
+      "mode": "cool",
+      "fan_mode": "High",
+      "temperature_c": 18,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF006798E619"
+    },
+    {
+      "mode": "cool",
+      "fan_mode": "High",
+      "temperature_c": 19,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF006798D629"
+    },
+    {
+      "mode": "cool",
+      "fan_mode": "High",
+      "temperature_c": 20,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF006798C639"
+    },
+    {
+      "mode": "cool",
+      "fan_mode": "High",
+      "temperature_c": 21,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF006798B649"
+    },
+    {
+      "mode": "cool",
+      "fan_mode": "High",
+      "temperature_c": 22,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF006798A659"
+    },
+    {
+      "mode": "cool",
+      "fan_mode": "High",
+      "temperature_c": 23,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF0067989669"
+    },
+    {
+      "mode": "cool",
+      "fan_mode": "High",
+      "temperature_c": 24,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF0067988679"
+    },
+    {
+      "mode": "cool",
+      "fan_mode": "High",
+      "temperature_c": 25,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF0067987689"
+    },
+    {
+      "mode": "cool",
+      "fan_mode": "High",
+      "temperature_c": 26,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF0067986699"
+    },
+    {
+      "mode": "cool",
+      "fan_mode": "High",
+      "temperature_c": 27,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00679856A9"
+    },
+    {
+      "mode": "cool",
+      "fan_mode": "High",
+      "temperature_c": 28,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00679846B9"
+    },
+    {
+      "mode": "cool",
+      "fan_mode": "High",
+      "temperature_c": 29,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00679836C9"
+    },
+    {
+      "mode": "cool",
+      "fan_mode": "High",
+      "temperature_c": 30,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00679826D9"
+    },
+    {
+      "mode": "cool",
+      "fan_mode": "Auto",
+      "temperature_c": 18,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00E718E619"
+    },
+    {
+      "mode": "cool",
+      "fan_mode": "Auto",
+      "temperature_c": 19,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00E718D629"
+    },
+    {
+      "mode": "cool",
+      "fan_mode": "Auto",
+      "temperature_c": 20,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00E718C639"
+    },
+    {
+      "mode": "cool",
+      "fan_mode": "Auto",
+      "temperature_c": 21,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00E718B649"
+    },
+    {
+      "mode": "cool",
+      "fan_mode": "Auto",
+      "temperature_c": 22,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00E718A659"
+    },
+    {
+      "mode": "cool",
+      "fan_mode": "Auto",
+      "temperature_c": 23,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00E7189669"
+    },
+    {
+      "mode": "cool",
+      "fan_mode": "Auto",
+      "temperature_c": 24,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00E7188679"
+    },
+    {
+      "mode": "cool",
+      "fan_mode": "Auto",
+      "temperature_c": 25,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00E7187689"
+    },
+    {
+      "mode": "cool",
+      "fan_mode": "Auto",
+      "temperature_c": 26,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00E7186699"
+    },
+    {
+      "mode": "cool",
+      "fan_mode": "Auto",
+      "temperature_c": 27,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00E71856A9"
+    },
+    {
+      "mode": "cool",
+      "fan_mode": "Auto",
+      "temperature_c": 28,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00E71846B9"
+    },
+    {
+      "mode": "cool",
+      "fan_mode": "Auto",
+      "temperature_c": 29,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00E71836C9"
+    },
+    {
+      "mode": "cool",
+      "fan_mode": "Auto",
+      "temperature_c": 30,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00E71826D9"
+    },
+    {
+      "mode": "heat",
+      "fan_mode": "Low",
+      "temperature_c": 18,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00A758E31C"
+    },
+    {
+      "mode": "heat",
+      "fan_mode": "Low",
+      "temperature_c": 19,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00A758D32C"
+    },
+    {
+      "mode": "heat",
+      "fan_mode": "Low",
+      "temperature_c": 20,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00A758C33C"
+    },
+    {
+      "mode": "heat",
+      "fan_mode": "Low",
+      "temperature_c": 21,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00A758B34C"
+    },
+    {
+      "mode": "heat",
+      "fan_mode": "Low",
+      "temperature_c": 22,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00A758A35C"
+    },
+    {
+      "mode": "heat",
+      "fan_mode": "Low",
+      "temperature_c": 23,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00A758936C"
+    },
+    {
+      "mode": "heat",
+      "fan_mode": "Low",
+      "temperature_c": 24,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00A758837C"
+    },
+    {
+      "mode": "heat",
+      "fan_mode": "Low",
+      "temperature_c": 25,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00A758738C"
+    },
+    {
+      "mode": "heat",
+      "fan_mode": "Low",
+      "temperature_c": 26,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00A758639C"
+    },
+    {
+      "mode": "heat",
+      "fan_mode": "Low",
+      "temperature_c": 27,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00A75853AC"
+    },
+    {
+      "mode": "heat",
+      "fan_mode": "Low",
+      "temperature_c": 28,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00A75843BC"
+    },
+    {
+      "mode": "heat",
+      "fan_mode": "Low",
+      "temperature_c": 29,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00A75833CC"
+    },
+    {
+      "mode": "heat",
+      "fan_mode": "Low",
+      "temperature_c": 30,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00A75823DC"
+    },
+    {
+      "mode": "heat",
+      "fan_mode": "Medium",
+      "temperature_c": 18,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF008778E31C"
+    },
+    {
+      "mode": "heat",
+      "fan_mode": "Medium",
+      "temperature_c": 19,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF008778D32C"
+    },
+    {
+      "mode": "heat",
+      "fan_mode": "Medium",
+      "temperature_c": 20,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF008778C33C"
+    },
+    {
+      "mode": "heat",
+      "fan_mode": "Medium",
+      "temperature_c": 21,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF008778B34C"
+    },
+    {
+      "mode": "heat",
+      "fan_mode": "Medium",
+      "temperature_c": 22,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF008778A35C"
+    },
+    {
+      "mode": "heat",
+      "fan_mode": "Medium",
+      "temperature_c": 23,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF008778936C"
+    },
+    {
+      "mode": "heat",
+      "fan_mode": "Medium",
+      "temperature_c": 24,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF008778837C"
+    },
+    {
+      "mode": "heat",
+      "fan_mode": "Medium",
+      "temperature_c": 25,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF008778738C"
+    },
+    {
+      "mode": "heat",
+      "fan_mode": "Medium",
+      "temperature_c": 26,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF008778639C"
+    },
+    {
+      "mode": "heat",
+      "fan_mode": "Medium",
+      "temperature_c": 27,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00877853AC"
+    },
+    {
+      "mode": "heat",
+      "fan_mode": "Medium",
+      "temperature_c": 28,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00877843BC"
+    },
+    {
+      "mode": "heat",
+      "fan_mode": "Medium",
+      "temperature_c": 29,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00877833CC"
+    },
+    {
+      "mode": "heat",
+      "fan_mode": "Medium",
+      "temperature_c": 30,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00877823DC"
+    },
+    {
+      "mode": "heat",
+      "fan_mode": "High",
+      "temperature_c": 18,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF006798E31C"
+    },
+    {
+      "mode": "heat",
+      "fan_mode": "High",
+      "temperature_c": 19,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF006798D32C"
+    },
+    {
+      "mode": "heat",
+      "fan_mode": "High",
+      "temperature_c": 20,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF006798C33C"
+    },
+    {
+      "mode": "heat",
+      "fan_mode": "High",
+      "temperature_c": 21,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF006798B34C"
+    },
+    {
+      "mode": "heat",
+      "fan_mode": "High",
+      "temperature_c": 22,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF006798A35C"
+    },
+    {
+      "mode": "heat",
+      "fan_mode": "High",
+      "temperature_c": 23,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF006798936C"
+    },
+    {
+      "mode": "heat",
+      "fan_mode": "High",
+      "temperature_c": 24,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF006798837C"
+    },
+    {
+      "mode": "heat",
+      "fan_mode": "High",
+      "temperature_c": 25,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF006798738C"
+    },
+    {
+      "mode": "heat",
+      "fan_mode": "High",
+      "temperature_c": 26,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF006798639C"
+    },
+    {
+      "mode": "heat",
+      "fan_mode": "High",
+      "temperature_c": 27,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00679853AC"
+    },
+    {
+      "mode": "heat",
+      "fan_mode": "High",
+      "temperature_c": 28,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00679843BC"
+    },
+    {
+      "mode": "heat",
+      "fan_mode": "High",
+      "temperature_c": 29,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00679833CC"
+    },
+    {
+      "mode": "heat",
+      "fan_mode": "High",
+      "temperature_c": 30,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00679823DC"
+    },
+    {
+      "mode": "heat",
+      "fan_mode": "Auto",
+      "temperature_c": 18,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00E718E31C"
+    },
+    {
+      "mode": "heat",
+      "fan_mode": "Auto",
+      "temperature_c": 19,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00E718D32C"
+    },
+    {
+      "mode": "heat",
+      "fan_mode": "Auto",
+      "temperature_c": 20,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00E718C33C"
+    },
+    {
+      "mode": "heat",
+      "fan_mode": "Auto",
+      "temperature_c": 21,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00E718B34C"
+    },
+    {
+      "mode": "heat",
+      "fan_mode": "Auto",
+      "temperature_c": 22,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00E718A35C"
+    },
+    {
+      "mode": "heat",
+      "fan_mode": "Auto",
+      "temperature_c": 23,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00E718936C"
+    },
+    {
+      "mode": "heat",
+      "fan_mode": "Auto",
+      "temperature_c": 24,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00E718837C"
+    },
+    {
+      "mode": "heat",
+      "fan_mode": "Auto",
+      "temperature_c": 25,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00E718738C"
+    },
+    {
+      "mode": "heat",
+      "fan_mode": "Auto",
+      "temperature_c": 26,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00E718639C"
+    },
+    {
+      "mode": "heat",
+      "fan_mode": "Auto",
+      "temperature_c": 27,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00E71853AC"
+    },
+    {
+      "mode": "heat",
+      "fan_mode": "Auto",
+      "temperature_c": 28,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00E71843BC"
+    },
+    {
+      "mode": "heat",
+      "fan_mode": "Auto",
+      "temperature_c": 29,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00E71833CC"
+    },
+    {
+      "mode": "heat",
+      "fan_mode": "Auto",
+      "temperature_c": 30,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00E71823DC"
+    },
+    {
+      "mode": "dry",
+      "fan_mode": "Low",
+      "temperature_c": 18,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00E718E51A"
+    },
+    {
+      "mode": "dry",
+      "fan_mode": "Low",
+      "temperature_c": 19,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00E718D52A"
+    },
+    {
+      "mode": "dry",
+      "fan_mode": "Low",
+      "temperature_c": 20,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00E718C53A"
+    },
+    {
+      "mode": "dry",
+      "fan_mode": "Low",
+      "temperature_c": 21,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00E718B54A"
+    },
+    {
+      "mode": "dry",
+      "fan_mode": "Low",
+      "temperature_c": 22,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00E718A55A"
+    },
+    {
+      "mode": "dry",
+      "fan_mode": "Low",
+      "temperature_c": 23,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00E718956A"
+    },
+    {
+      "mode": "dry",
+      "fan_mode": "Low",
+      "temperature_c": 24,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00E718857A"
+    },
+    {
+      "mode": "dry",
+      "fan_mode": "Low",
+      "temperature_c": 25,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00E718758A"
+    },
+    {
+      "mode": "dry",
+      "fan_mode": "Low",
+      "temperature_c": 26,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00E718659A"
+    },
+    {
+      "mode": "dry",
+      "fan_mode": "Low",
+      "temperature_c": 27,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00E71855AA"
+    },
+    {
+      "mode": "dry",
+      "fan_mode": "Low",
+      "temperature_c": 28,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00E71845BA"
+    },
+    {
+      "mode": "dry",
+      "fan_mode": "Low",
+      "temperature_c": 29,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00E71835CA"
+    },
+    {
+      "mode": "dry",
+      "fan_mode": "Low",
+      "temperature_c": 30,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00E71825DA"
+    },
+    {
+      "mode": "dry",
+      "fan_mode": "Medium",
+      "temperature_c": 18,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00E718E51A"
+    },
+    {
+      "mode": "dry",
+      "fan_mode": "Medium",
+      "temperature_c": 19,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00E718D52A"
+    },
+    {
+      "mode": "dry",
+      "fan_mode": "Medium",
+      "temperature_c": 20,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00E718C53A"
+    },
+    {
+      "mode": "dry",
+      "fan_mode": "Medium",
+      "temperature_c": 21,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00E718B54A"
+    },
+    {
+      "mode": "dry",
+      "fan_mode": "Medium",
+      "temperature_c": 22,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00E718A55A"
+    },
+    {
+      "mode": "dry",
+      "fan_mode": "Medium",
+      "temperature_c": 23,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00E718956A"
+    },
+    {
+      "mode": "dry",
+      "fan_mode": "Medium",
+      "temperature_c": 24,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00E718857A"
+    },
+    {
+      "mode": "dry",
+      "fan_mode": "Medium",
+      "temperature_c": 25,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00E718758A"
+    },
+    {
+      "mode": "dry",
+      "fan_mode": "Medium",
+      "temperature_c": 26,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00E718659A"
+    },
+    {
+      "mode": "dry",
+      "fan_mode": "Medium",
+      "temperature_c": 27,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00E71855AA"
+    },
+    {
+      "mode": "dry",
+      "fan_mode": "Medium",
+      "temperature_c": 28,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00E71845BA"
+    },
+    {
+      "mode": "dry",
+      "fan_mode": "Medium",
+      "temperature_c": 29,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00E71835CA"
+    },
+    {
+      "mode": "dry",
+      "fan_mode": "Medium",
+      "temperature_c": 30,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00E71825DA"
+    },
+    {
+      "mode": "dry",
+      "fan_mode": "High",
+      "temperature_c": 18,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00E718E51A"
+    },
+    {
+      "mode": "dry",
+      "fan_mode": "High",
+      "temperature_c": 19,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00E718D52A"
+    },
+    {
+      "mode": "dry",
+      "fan_mode": "High",
+      "temperature_c": 20,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00E718C53A"
+    },
+    {
+      "mode": "dry",
+      "fan_mode": "High",
+      "temperature_c": 21,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00E718B54A"
+    },
+    {
+      "mode": "dry",
+      "fan_mode": "High",
+      "temperature_c": 22,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00E718A55A"
+    },
+    {
+      "mode": "dry",
+      "fan_mode": "High",
+      "temperature_c": 23,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00E718956A"
+    },
+    {
+      "mode": "dry",
+      "fan_mode": "High",
+      "temperature_c": 24,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00E718857A"
+    },
+    {
+      "mode": "dry",
+      "fan_mode": "High",
+      "temperature_c": 25,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00E718758A"
+    },
+    {
+      "mode": "dry",
+      "fan_mode": "High",
+      "temperature_c": 26,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00E718659A"
+    },
+    {
+      "mode": "dry",
+      "fan_mode": "High",
+      "temperature_c": 27,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00E71855AA"
+    },
+    {
+      "mode": "dry",
+      "fan_mode": "High",
+      "temperature_c": 28,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00E71845BA"
+    },
+    {
+      "mode": "dry",
+      "fan_mode": "High",
+      "temperature_c": 29,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00E71835CA"
+    },
+    {
+      "mode": "dry",
+      "fan_mode": "High",
+      "temperature_c": 30,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00E71825DA"
+    },
+    {
+      "mode": "dry",
+      "fan_mode": "Auto",
+      "temperature_c": 18,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00E718E51A"
+    },
+    {
+      "mode": "dry",
+      "fan_mode": "Auto",
+      "temperature_c": 19,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00E718D52A"
+    },
+    {
+      "mode": "dry",
+      "fan_mode": "Auto",
+      "temperature_c": 20,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00E718C53A"
+    },
+    {
+      "mode": "dry",
+      "fan_mode": "Auto",
+      "temperature_c": 21,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00E718B54A"
+    },
+    {
+      "mode": "dry",
+      "fan_mode": "Auto",
+      "temperature_c": 22,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00E718A55A"
+    },
+    {
+      "mode": "dry",
+      "fan_mode": "Auto",
+      "temperature_c": 23,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00E718956A"
+    },
+    {
+      "mode": "dry",
+      "fan_mode": "Auto",
+      "temperature_c": 24,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00E718857A"
+    },
+    {
+      "mode": "dry",
+      "fan_mode": "Auto",
+      "temperature_c": 25,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00E718758A"
+    },
+    {
+      "mode": "dry",
+      "fan_mode": "Auto",
+      "temperature_c": 26,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00E718659A"
+    },
+    {
+      "mode": "dry",
+      "fan_mode": "Auto",
+      "temperature_c": 27,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00E71855AA"
+    },
+    {
+      "mode": "dry",
+      "fan_mode": "Auto",
+      "temperature_c": 28,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00E71845BA"
+    },
+    {
+      "mode": "dry",
+      "fan_mode": "Auto",
+      "temperature_c": 29,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00E71835CA"
+    },
+    {
+      "mode": "dry",
+      "fan_mode": "Auto",
+      "temperature_c": 30,
+      "swing_mode": "Up",
+      "frame": "52AEC326D9FF00E71825DA"
+    }
+  ]
+}

@@ -18,6 +18,8 @@ from ..base import (
     EntityState,
     SelectControl,
     SwitchControl,
+    VERIFICATION_CAPTURES,
+    VERIFICATION_HARDWARE,
     hvac_mode_to_protocol_mode,
 )
 
@@ -47,7 +49,7 @@ class ZSAProfile(ClimateProfile):
     key = "zsa"
     name = "ZSA / Avanti wall-mounted"
     device_model = "ZSA Series (Avanti)"
-    verified = True
+    verification = VERIFICATION_HARDWARE
 
     fan_modes = ir_protocol.FAN_MODES
     default_fan_mode = ir_protocol.DEFAULT_FAN_MODE
@@ -275,7 +277,7 @@ class FDProfile(ClimateProfile):
     key = "fd"
     name = "FD series cassette"
     device_model = "FD Series (PJZ502A030D)"
-    verified = True
+    verification = VERIFICATION_HARDWARE
 
     fan_modes = fdtc_frames.FAN_MODES
     default_fan_mode = fdtc_frames.DEFAULT_FAN_MODE
@@ -447,6 +449,16 @@ class _ZJFamilyProfile(ClimateProfile):
 
         return "none"
 
+    def adjust_state(self, state: EntityState) -> None:
+        """Dry runs with the auto fan speed only.
+
+        Every captured dry frame carries the auto fan speed regardless of what
+        was asked for, so the remote clearly forces it.
+        """
+
+        if state.hvac_mode == HVACMode.DRY:
+            state.fan_mode = zj_frames.FAN_AUTO
+
     def build_command(self, state: ClimateState) -> Any:
         """Build an 11-byte Mitsubishi Heavy command."""
 
@@ -470,6 +482,7 @@ class ZJProfile(_ZJFamilyProfile):
     key = "mhi_zj"
     name = "SRK ZJ-S wall-mounted"
     device_model = "SRK ZJ-S Series"
+    verification = VERIFICATION_CAPTURES
     variant = zj_frames.ZJ
 
 

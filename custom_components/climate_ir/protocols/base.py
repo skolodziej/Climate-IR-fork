@@ -12,11 +12,15 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, Final
 
 from homeassistant.components.climate.const import HVACMode
 
 PRESET_NONE = "none"
+
+VERIFICATION_NONE: Final = "none"
+VERIFICATION_CAPTURES: Final = "captures"
+VERIFICATION_HARDWARE: Final = "hardware"
 
 DEFAULT_HVAC_MODES: tuple = (
     HVACMode.OFF,
@@ -137,9 +141,17 @@ class ClimateProfile:
     name: str = ""
     manufacturer: str = "Mitsubishi Heavy Industries"
     device_model: str = ""
-    #: True only once frames have been confirmed against real hardware.
-    #: Profiles derived from a reference implementation start out False.
-    verified: bool = False
+    #: How far this profile has actually been checked:
+    #:   "none"     -- follows a reference description, never checked
+    #:   "captures" -- reproduces frames independently recorded from a remote
+    #:   "hardware" -- confirmed against the physical unit
+    verification: str = VERIFICATION_NONE
+
+    @property
+    def verified(self) -> bool:
+        """Return whether a physical unit has confirmed this profile."""
+
+        return self.verification == VERIFICATION_HARDWARE
 
     # --- what the entity may offer --------------------------------------
     hvac_modes: tuple = DEFAULT_HVAC_MODES

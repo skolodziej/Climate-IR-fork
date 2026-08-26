@@ -30,6 +30,9 @@ from .base import (
     EntityState,
     SelectControl,
     SwitchControl,
+    VERIFICATION_CAPTURES,
+    VERIFICATION_HARDWARE,
+    VERIFICATION_NONE,
     hvac_mode_to_protocol_mode,
 )
 
@@ -85,6 +88,9 @@ __all__ = [
     "SelectControl",
     "SwitchControl",
     "VENDORS",
+    "VERIFICATION_CAPTURES",
+    "VERIFICATION_HARDWARE",
+    "VERIFICATION_NONE",
     "all_profiles",
     "get_profile",
     "hvac_mode_to_protocol_mode",
