@@ -29,12 +29,15 @@ async def async_setup_entry(
     """Set up select entities."""
 
     runtime_data = hass.data[DOMAIN][entry.entry_id]
-    async_add_entities(
-        [
-            MHIIRPowerLedSelect(entry, runtime_data),
-            MHIIRInstallPositionSelect(entry, runtime_data),
-        ]
-    )
+    profile = runtime_data["profile"]
+
+    entities: list[SelectEntity] = []
+    if profile.supports_led_brightness:
+        entities.append(MHIIRPowerLedSelect(entry, runtime_data))
+    if profile.supports_install_position:
+        entities.append(MHIIRInstallPositionSelect(entry, runtime_data))
+
+    async_add_entities(entities)
 
 
 class MHIIRPowerLedSelect(SelectEntity, RestoreEntity):

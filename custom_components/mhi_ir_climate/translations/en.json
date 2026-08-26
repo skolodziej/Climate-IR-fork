@@ -3,8 +3,15 @@
   "config": {
     "step": {
       "user": {
+        "title": "Select the indoor unit family",
+        "description": "Different Mitsubishi Heavy Industries remotes use completely different IR protocols. Pick the family that matches your indoor unit and remote.",
+        "data": {
+          "protocol": "Indoor unit family"
+        }
+      },
+      "settings": {
         "title": "Add MHI air conditioner",
-        "description": "Create a climate entity linked to a native Home Assistant infrared emitter.",
+        "description": "Create a climate entity for {model}, linked to a native Home Assistant infrared emitter.",
         "data": {
           "name": "Name",
           "emitter_entity_id": "Infrared emitter",
@@ -32,7 +39,7 @@
     "step": {
       "init": {
         "title": "MHI IR Climate options",
-        "description": "Update the linked infrared emitter, base frame, or room sensors.",
+        "description": "Update the linked infrared emitter, base frame, or room sensors for {model}. To change the indoor unit family, add a new entry.",
         "data": {
           "name": "Name",
           "emitter_entity_id": "Infrared emitter",
@@ -51,6 +58,14 @@
       "invalid_base_frame": "The base frame must be valid hexadecimal that decodes to exactly 19 bytes.",
       "invalid_emitter": "Select an available infrared emitter entity.",
       "invalid_sensor": "Select an available sensor entity or clear this field."
+    }
+  },
+  "selector": {
+    "protocol": {
+      "options": {
+        "zsa": "ZSA / Avanti wall-mounted (RLA502A remotes)",
+        "fd": "FD series cassette (PJZ502A030D remote)"
+      }
     }
   },
   "repairs": {

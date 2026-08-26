@@ -13,7 +13,7 @@ from homeassistant.core import CoreState, Event, HomeAssistant, callback
 from homeassistant.helpers import entity_registry as er, issue_registry as ir
 from homeassistant.helpers.event import async_track_state_change_event
 
-from .const import DOMAIN, PLATFORMS
+from .const import CONF_PROTOCOL, DOMAIN, PLATFORMS
 from .entity_validation import (
     async_configured_entity_ids,
     async_get_invalid_configured_entities,
@@ -23,6 +23,7 @@ from .ir_protocol import (
     DEFAULT_INSTALL_POSITION,
     DEFAULT_LED_BRIGHTNESS,
 )
+from .profiles import get_profile
 
 ISSUE_INVALID_CONFIGURED_ENTITIES = "invalid_configured_entities"
 
@@ -30,10 +31,12 @@ ISSUE_INVALID_CONFIGURED_ENTITIES = "invalid_configured_entities"
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up MHI IR Climate from a config entry."""
 
+    config = _entry_config(entry)
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN][entry.entry_id] = {
         "climate_entity": None,
-        "config": {**entry.data, **entry.options},
+        "config": config,
+        "profile": get_profile(config.get(CONF_PROTOCOL)),
         "auto_clean": DEFAULT_AUTO_CLEAN,
         "install_position": DEFAULT_INSTALL_POSITION,
         "led_brightness": DEFAULT_LED_BRIGHTNESS,

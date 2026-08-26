@@ -39,30 +39,27 @@ from .const import (
     ATTR_LAST_SWING_HORIZONTAL_MODE,
     ATTR_LAST_SWING_MODE,
     ATTR_MODEL,
+    ATTR_PROTOCOL,
     CONF_BASE_FRAME_HEX,
     CONF_EMITTER_ENTITY_ID,
     CONF_HUMIDITY_SENSOR,
+    CONF_PROTOCOL,
     CONF_TEMPERATURE_SENSOR,
-    DEVICE_MODEL,
     DOMAIN,
 )
 from .ir_protocol import (
     DEFAULT_AUTO_CLEAN,
-    DEFAULT_FAN_MODE,
     DEFAULT_LED_BRIGHTNESS,
-    FAN_MODES,
     PRESET_ECO,
     PRESET_NIGHT_SETBACK,
-    PRESET_MODES,
-    SWING_HORIZONTAL_MODES,
-    SWING_MODES,
-    build_mhi_ir_command,
-    normalize_preset_mode,
+)
+from .profiles import (
+    ClimateProfile,
+    CommandRequest,
+    get_profile,
+    hvac_mode_to_protocol_mode,
 )
 
-DEFAULT_TARGET_TEMPERATURE = 24
-MIN_TARGET_TEMPERATURE = 18
-MAX_TARGET_TEMPERATURE = 30
 SUPPORTED_HVAC_MODES = (
     HVACMode.OFF,
     HVACMode.COOL,
@@ -72,12 +69,9 @@ SUPPORTED_HVAC_MODES = (
     HVACMode.HEAT_COOL,
 )
 ON_HVAC_MODES = tuple(mode for mode in SUPPORTED_HVAC_MODES if mode != HVACMode.OFF)
-PRESET_HVAC_MODES = (HVACMode.COOL, HVACMode.HEAT, HVACMode.HEAT_COOL)
-ECO_PRESET_HVAC_MODES = (*PRESET_HVAC_MODES, HVACMode.DRY)
 AUTO_CLEAN_HVAC_MODES = (HVACMode.COOL, HVACMode.DRY, HVACMode.HEAT_COOL)
 MODES_WITHOUT_3D_AUTO = (HVACMode.DRY, HVACMode.FAN_ONLY)
 PRESETS_WITHOUT_3D_AUTO = (PRESET_BOOST, PRESET_ECO)
-BOOST_PRESET_SECONDS = 15 * 60
 SWING_3D_AUTO = "3D Auto"
 SWING_STOP = "Stop"
 
@@ -99,19 +93,8 @@ class MHIIRClimateEntity(ClimateEntity, RestoreEntity):
     """Optimistic MHI climate entity backed by an infrared emitter."""
 
     _attr_has_entity_name = False
-    _attr_max_temp = MAX_TARGET_TEMPERATURE
-    _attr_min_temp = MIN_TARGET_TEMPERATURE
     _attr_precision = PRECISION_TENTHS
     _attr_should_poll = False
-    _attr_supported_features = (
-        ClimateEntityFeature.TARGET_TEMPERATURE
-        | ClimateEntityFeature.FAN_MODE
-        | ClimateEntityFeature.PRESET_MODE
-        | ClimateEntityFeature.SWING_MODE
-        | ClimateEntityFeature.SWING_HORIZONTAL_MODE
-        | ClimateEntityFeature.TURN_ON
-        | ClimateEntityFeature.TURN_OFF
-    )
     _attr_target_temperature_step = 1
     _attr_temperature_unit = UnitOfTemperature.CELSIUS
     _enable_turn_on_off_backwards_compatibility = False
@@ -128,6 +111,9 @@ class MHIIRClimateEntity(ClimateEntity, RestoreEntity):
         self._entry = entry
         self._runtime_data = data
         config = data["config"]
+        self._profile: ClimateProfile = data.get("profile") or get_profile(
+            config.get(CONF_PROTOCOL)
+        )
         self._emitter_entity_id = config[CONF_EMITTER_ENTITY_ID]
         self._temperature_sensor_entity_id = _optional_entity_id(
             config.get(CONF_TEMPERATURE_SENSOR)
@@ -135,11 +121,12 @@ class MHIIRClimateEntity(ClimateEntity, RestoreEntity):
         self._humidity_sensor_entity_id = _optional_entity_id(
             config.get(CONF_HUMIDITY_SENSOR)
         )
-        self._base_frame_hex = config[CONF_BASE_FRAME_HEX]
+        self._base_frame_hex = config.get(CONF_BASE_FRAME_HEX, "")
         self._name = config[CONF_NAME]
         self._last_on_hvac_mode = HVACMode.COOL
         self._last_swing_mode: str | None = None
         self._last_swing_horizontal_mode: str | None = None
+        self._last_louver_position: str | None = None
         self._cancel_boost_reset = None
 
         self._attr_name = self._name
@@ -147,20 +134,27 @@ class MHIIRClimateEntity(ClimateEntity, RestoreEntity):
         self._attr_device_info = {
             "identifiers": {(DOMAIN, entry.entry_id)},
             "manufacturer": "Mitsubishi Heavy Industries",
-            "model": DEVICE_MODEL,
+            "model": self._profile.device_model,
             "name": self._name,
         }
+        self._attr_supported_features = _supported_features(self._profile)
+        self._attr_min_temp = self._profile.min_temperature
+        self._attr_max_temp = self._profile.max_temperature
         self._attr_hvac_modes = list(SUPPORTED_HVAC_MODES)
         self._attr_hvac_mode = HVACMode.OFF
-        self._attr_fan_modes = list(FAN_MODES)
-        self._attr_fan_mode = DEFAULT_FAN_MODE
-        self._attr_preset_modes = list(PRESET_MODES)
+        self._attr_fan_modes = list(self._profile.fan_modes)
+        self._attr_fan_mode = self._profile.default_fan_mode
+        self._attr_preset_modes = list(self._profile.preset_modes)
         self._attr_preset_mode = PRESET_NONE
-        self._attr_swing_modes = list(SWING_MODES)
-        self._attr_swing_mode = SWING_3D_AUTO
-        self._attr_swing_horizontal_modes = list(SWING_HORIZONTAL_MODES)
-        self._attr_swing_horizontal_mode = SWING_3D_AUTO
-        self._attr_target_temperature = DEFAULT_TARGET_TEMPERATURE
+        self._attr_swing_modes = list(self._profile.swing_modes)
+        self._attr_swing_mode = self._profile.default_swing_mode
+        self._attr_swing_horizontal_modes = list(
+            self._profile.swing_horizontal_modes
+        )
+        self._attr_swing_horizontal_mode = (
+            self._profile.default_swing_horizontal_mode
+        )
+        self._attr_target_temperature = self._profile.default_temperature
         self._attr_current_temperature = None
         self._attr_current_humidity = None
 
@@ -220,7 +214,8 @@ class MHIIRClimateEntity(ClimateEntity, RestoreEntity):
             ATTR_LAST_ON_HVAC_MODE: self._last_on_hvac_mode.value,
             ATTR_LAST_SWING_MODE: self._last_swing_mode,
             ATTR_LAST_SWING_HORIZONTAL_MODE: self._last_swing_horizontal_mode,
-            ATTR_MODEL: DEVICE_MODEL,
+            ATTR_MODEL: self._profile.device_model,
+            ATTR_PROTOCOL: self._profile.key,
         }
 
     async def async_set_hvac_mode(self, hvac_mode: HVACMode | str) -> None:
@@ -234,6 +229,7 @@ class MHIIRClimateEntity(ClimateEntity, RestoreEntity):
         powering_off = mode == HVACMode.OFF and previous_mode in ON_HVAC_MODES
         start_auto_clean = (
             powering_off
+            and self._profile.supports_auto_clean
             and previous_mode in AUTO_CLEAN_HVAC_MODES
             and self._auto_clean_for_command()
         )
@@ -241,10 +237,11 @@ class MHIIRClimateEntity(ClimateEntity, RestoreEntity):
         self._attr_hvac_mode = mode
         if mode in ON_HVAC_MODES:
             self._last_on_hvac_mode = mode
-        if not _preset_available_for_hvac_mode(
+        if not self._profile.preset_available(
             cast(str, self._attr_preset_mode), mode
         ):
             self._set_preset_mode_without_ir(PRESET_NONE)
+        self._sync_preset_temperature()
         self._ensure_fan_available_for_mode(mode)
         self._ensure_swing_available_for_mode(mode)
 
@@ -259,7 +256,8 @@ class MHIIRClimateEntity(ClimateEntity, RestoreEntity):
 
         temperature = kwargs.get(ATTR_TEMPERATURE)
         if temperature is not None:
-            self._attr_target_temperature = _clamp_temperature(temperature)
+            self._release_temperature_locking_preset()
+            self._attr_target_temperature = self._clamp_temperature(temperature)
 
         if hvac_mode := kwargs.get(ATTR_HVAC_MODE):
             await self.async_set_hvac_mode(hvac_mode)
@@ -273,33 +271,29 @@ class MHIIRClimateEntity(ClimateEntity, RestoreEntity):
         """Set preset mode."""
 
         try:
-            preset_mode = normalize_preset_mode(preset_mode)
+            preset_mode = self._profile.normalize_preset_mode(preset_mode)
         except ValueError as err:
             raise HomeAssistantError(str(err)) from err
 
         if preset_mode not in self._attr_preset_modes:
             raise HomeAssistantError(f"Unsupported preset mode: {preset_mode}")
 
-        if preset_mode not in (PRESET_NONE, PRESET_NIGHT_SETBACK) and not (
-            _preset_available_for_hvac_mode(
-                preset_mode,
-                _coerce_hvac_mode(cast(HVACMode | str, self._attr_hvac_mode)),
-            )
+        if preset_mode == PRESET_NIGHT_SETBACK and (
+            self._profile.night_setback_forces_heat
         ):
-            available_modes = (
-                "cool, heat, dry, or heat/cool"
-                if preset_mode == PRESET_ECO
-                else "cool, heat, or heat/cool"
-            )
-            raise HomeAssistantError(
-                f"Preset mode {preset_mode} is only available in {available_modes}"
-            )
-
-        if preset_mode == PRESET_NIGHT_SETBACK:
             self._attr_hvac_mode = HVACMode.HEAT
             self._last_on_hvac_mode = HVACMode.HEAT
 
-        if preset_mode in PRESETS_WITHOUT_3D_AUTO:
+        if preset_mode != PRESET_NONE and not self._profile.preset_available(
+            preset_mode,
+            _coerce_hvac_mode(cast(HVACMode | str, self._attr_hvac_mode)),
+        ):
+            raise HomeAssistantError(
+                f"Preset mode {preset_mode} is not available in "
+                f"{self._attr_hvac_mode}"
+            )
+
+        if self._profile.supports_3d_auto and preset_mode in PRESETS_WITHOUT_3D_AUTO:
             self._exit_3d_auto()
 
         self._set_preset_mode_without_ir(preset_mode)
@@ -314,7 +308,10 @@ class MHIIRClimateEntity(ClimateEntity, RestoreEntity):
             raise HomeAssistantError(f"Unsupported fan mode: {fan_mode}")
 
         self._attr_fan_mode = (
-            DEFAULT_FAN_MODE if self._attr_hvac_mode == HVACMode.DRY else fan_mode
+            self._profile.default_fan_mode
+            if self._profile.dry_forces_auto_fan
+            and self._attr_hvac_mode == HVACMode.DRY
+            else fan_mode
         )
         self.async_write_ha_state()
         if self._attr_hvac_mode != HVACMode.OFF:
@@ -399,38 +396,47 @@ class MHIIRClimateEntity(ClimateEntity, RestoreEntity):
                 self._last_on_hvac_mode = last_on_hvac_mode
 
         if (temperature := previous_state.attributes.get(ATTR_TEMPERATURE)) is not None:
-            self._attr_target_temperature = _clamp_temperature(temperature)
+            self._attr_target_temperature = self._clamp_temperature(temperature)
 
-        if (fan_mode := previous_state.attributes.get(ATTR_FAN_MODE)) in FAN_MODES:
+        if (
+            fan_mode := previous_state.attributes.get(ATTR_FAN_MODE)
+        ) in self._profile.fan_modes:
             self._attr_fan_mode = fan_mode
 
         if (preset_mode := previous_state.attributes.get(ATTR_PRESET_MODE)) is not None:
             try:
-                self._attr_preset_mode = normalize_preset_mode(preset_mode)
+                self._attr_preset_mode = self._profile.normalize_preset_mode(
+                    preset_mode
+                )
             except ValueError:
                 pass
 
-        if (swing_mode := previous_state.attributes.get(ATTR_SWING_MODE)) in SWING_MODES:
+        if (
+            swing_mode := previous_state.attributes.get(ATTR_SWING_MODE)
+        ) in self._profile.swing_modes:
             self._attr_swing_mode = swing_mode
             if swing_mode != SWING_3D_AUTO:
                 self._last_swing_mode = swing_mode
 
         horizontal_restored = previous_state.attributes.get(ATTR_SWING_HORIZONTAL_MODE)
         horizontal_was_stored = horizontal_restored is not None
-        if horizontal_restored in SWING_HORIZONTAL_MODES:
+        if horizontal_restored in self._profile.swing_horizontal_modes:
             self._attr_swing_horizontal_mode = horizontal_restored
             if horizontal_restored != SWING_3D_AUTO:
                 self._last_swing_horizontal_mode = horizontal_restored
 
         if last_swing_mode := previous_state.attributes.get(ATTR_LAST_SWING_MODE):
-            if last_swing_mode in SWING_MODES and last_swing_mode != SWING_3D_AUTO:
+            if (
+                last_swing_mode in self._profile.swing_modes
+                and last_swing_mode != SWING_3D_AUTO
+            ):
                 self._last_swing_mode = last_swing_mode
 
         if last_swing_horizontal_mode := previous_state.attributes.get(
             ATTR_LAST_SWING_HORIZONTAL_MODE
         ):
             if (
-                last_swing_horizontal_mode in SWING_HORIZONTAL_MODES
+                last_swing_horizontal_mode in self._profile.swing_horizontal_modes
                 and last_swing_horizontal_mode != SWING_3D_AUTO
             ):
                 self._last_swing_horizontal_mode = last_swing_horizontal_mode
@@ -438,17 +444,20 @@ class MHIIRClimateEntity(ClimateEntity, RestoreEntity):
         self._reconcile_restored_swing_modes(horizontal_was_stored)
         if (
             self._attr_preset_mode == PRESET_NIGHT_SETBACK
-            and self._attr_hvac_mode in PRESET_HVAC_MODES
+            and self._profile.night_setback_forces_heat
+            and self._attr_hvac_mode in ON_HVAC_MODES
         ):
             self._attr_hvac_mode = HVACMode.HEAT
             self._last_on_hvac_mode = HVACMode.HEAT
-        elif not _preset_available_for_hvac_mode(
+        elif not self._profile.preset_available(
             cast(str, self._attr_preset_mode), self._attr_hvac_mode
         ):
             self._set_preset_mode_without_ir(PRESET_NONE)
         elif self._attr_preset_mode == PRESET_BOOST:
             self._schedule_boost_preset_reset()
-        if self._attr_preset_mode in PRESETS_WITHOUT_3D_AUTO:
+        if self._profile.supports_3d_auto and (
+            self._attr_preset_mode in PRESETS_WITHOUT_3D_AUTO
+        ):
             self._exit_3d_auto()
         self._ensure_fan_available_for_mode(self._attr_hvac_mode)
         self._ensure_swing_available_for_mode(self._attr_hvac_mode)
@@ -477,6 +486,7 @@ class MHIIRClimateEntity(ClimateEntity, RestoreEntity):
         off_hvac_mode: HVACMode | None = None,
         start_auto_clean: bool = False,
         install_position: str | None = None,
+        filter_reset: bool = False,
     ) -> None:
         """Send an IR command representing the entity's current target state."""
 
@@ -486,26 +496,29 @@ class MHIIRClimateEntity(ClimateEntity, RestoreEntity):
             if power_on
             else off_hvac_mode or self._last_on_hvac_mode
         )
-        mode = _hvac_mode_to_protocol_mode(command_hvac_mode)
-        temperature = _clamp_temperature(
-            self._attr_target_temperature or DEFAULT_TARGET_TEMPERATURE
+        request = CommandRequest(
+            mode=hvac_mode_to_protocol_mode(command_hvac_mode),
+            temperature=self._clamp_temperature(
+                self._attr_target_temperature or self._profile.default_temperature
+            ),
+            power_on=power_on,
+            fan_mode=self._fan_mode_for_command(),
+            preset_mode=cast(str, self._attr_preset_mode),
+            base_frame_hex=self._base_frame_hex,
+            swing_mode=cast(str | None, self._attr_swing_mode),
+            swing_horizontal_mode=cast(
+                str | None, self._attr_swing_horizontal_mode
+            ),
+            louver_position=self._last_louver_position,
+            led_brightness=self._led_brightness_for_command(),
+            install_position=install_position,
+            auto_clean=self._auto_clean_for_command(),
+            start_auto_clean=start_auto_clean,
+            filter_reset=filter_reset,
         )
 
         try:
-            command = build_mhi_ir_command(
-                mode,
-                temperature,
-                power_on,
-                base_frame_hex=self._base_frame_hex,
-                auto_clean=self._auto_clean_for_command(),
-                fan_mode=self._fan_mode_for_command(),
-                led_brightness=self._led_brightness_for_command(),
-                preset_mode=cast(str, self._attr_preset_mode),
-                start_auto_clean=start_auto_clean,
-                install_position=install_position,
-                swing_ud=cast(str | None, self._attr_swing_mode),
-                swing_lr=cast(str | None, self._attr_swing_horizontal_mode),
-            )
+            command = self._profile.build_command(request)
         except ValueError as err:
             raise HomeAssistantError(str(err)) from err
 
@@ -534,6 +547,13 @@ class MHIIRClimateEntity(ClimateEntity, RestoreEntity):
 
     def _set_vertical_swing_mode(self, swing_mode: str) -> None:
         """Update vertical swing and keep 3D Auto axes coupled."""
+
+        if not self._profile.supports_3d_auto:
+            self._attr_swing_mode = swing_mode
+            self._last_swing_mode = swing_mode
+            if swing_mode in self._profile.swing_modes[1:]:
+                self._last_louver_position = swing_mode
+            return
 
         if swing_mode == SWING_3D_AUTO:
             if self._attr_hvac_mode in MODES_WITHOUT_3D_AUTO:
@@ -577,6 +597,11 @@ class MHIIRClimateEntity(ClimateEntity, RestoreEntity):
     def _reconcile_restored_swing_modes(self, horizontal_was_stored: bool) -> None:
         """Normalize restored swing state after upgrades or partial attributes."""
 
+        if not self._profile.supports_3d_auto:
+            if self._attr_swing_mode in self._profile.swing_modes[1:]:
+                self._last_louver_position = cast(str, self._attr_swing_mode)
+            return
+
         if not horizontal_was_stored and self._attr_swing_mode != SWING_3D_AUTO:
             self._attr_swing_horizontal_mode = (
                 self._last_swing_horizontal_mode or SWING_STOP
@@ -596,6 +621,8 @@ class MHIIRClimateEntity(ClimateEntity, RestoreEntity):
     def _ensure_swing_available_for_mode(self, hvac_mode: HVACMode) -> None:
         """Dry and fan-only modes cannot send 3D Auto swing."""
 
+        if not self._profile.supports_3d_auto:
+            return
         if hvac_mode not in MODES_WITHOUT_3D_AUTO:
             return
 
@@ -617,27 +644,48 @@ class MHIIRClimateEntity(ClimateEntity, RestoreEntity):
             self._last_swing_horizontal_mode = self._attr_swing_horizontal_mode
 
     def _ensure_fan_available_for_mode(self, hvac_mode: HVACMode) -> None:
-        """Dry mode always uses auto fan."""
+        """Dry mode always uses auto fan on families that require it."""
 
-        if hvac_mode == HVACMode.DRY:
-            self._attr_fan_mode = DEFAULT_FAN_MODE
+        if self._profile.dry_forces_auto_fan and hvac_mode == HVACMode.DRY:
+            self._attr_fan_mode = self._profile.default_fan_mode
 
     def _set_preset_mode_without_ir(self, preset_mode: str) -> None:
         """Update preset mode without sending an IR command."""
 
         self._attr_preset_mode = preset_mode
-        if preset_mode == PRESET_BOOST:
+        self._sync_preset_temperature()
+        if preset_mode == PRESET_BOOST and self._profile.boost_reset_seconds:
             self._schedule_boost_preset_reset()
         else:
+            self._cancel_boost_preset_reset()
+
+    def _sync_preset_temperature(self) -> None:
+        """Mirror the setpoint the remote forces for the active preset."""
+
+        forced = self._profile.preset_temperature(
+            cast(str, self._attr_preset_mode),
+            _coerce_hvac_mode(cast(HVACMode | str, self._attr_hvac_mode)),
+        )
+        if forced is not None:
+            self._attr_target_temperature = forced
+
+    def _release_temperature_locking_preset(self) -> None:
+        """Clear a preset that owns the setpoint before applying a new one."""
+
+        if self._attr_preset_mode in self._profile.temperature_locking_presets:
+            self._attr_preset_mode = PRESET_NONE
             self._cancel_boost_preset_reset()
 
     def _schedule_boost_preset_reset(self) -> None:
         """Schedule Boost preset to clear in Home Assistant state only."""
 
+        if not self._profile.boost_reset_seconds:
+            return
+
         self._cancel_boost_preset_reset()
         self._cancel_boost_reset = async_call_later(
             self.hass,
-            BOOST_PRESET_SECONDS,
+            self._profile.boost_reset_seconds,
             self._boost_preset_reset_elapsed,
         )
 
@@ -657,16 +705,28 @@ class MHIIRClimateEntity(ClimateEntity, RestoreEntity):
             self._cancel_boost_reset()
             self._cancel_boost_reset = None
 
+    def _clamp_temperature(self, value: Any) -> int:
+        """Clamp and round a target temperature to the profile's range."""
+
+        temperature = round(float(value))
+        return min(
+            self._profile.max_temperature,
+            max(self._profile.min_temperature, temperature),
+        )
+
     def _fan_mode_for_command(self) -> str:
         """Return the fan mode that can be sent for the current HVAC mode."""
 
-        if self._attr_hvac_mode == HVACMode.DRY:
-            return DEFAULT_FAN_MODE
+        if self._profile.dry_forces_auto_fan and self._attr_hvac_mode == HVACMode.DRY:
+            return self._profile.default_fan_mode
 
         return cast(str, self._attr_fan_mode)
 
-    def _led_brightness_for_command(self) -> str:
+    def _led_brightness_for_command(self) -> str | None:
         """Return the selected LED brightness."""
+
+        if not self._profile.supports_led_brightness:
+            return None
 
         return cast(
             str,
@@ -675,6 +735,9 @@ class MHIIRClimateEntity(ClimateEntity, RestoreEntity):
 
     def _auto_clean_for_command(self) -> bool:
         """Return whether auto clean is enabled."""
+
+        if not self._profile.supports_auto_clean:
+            return False
 
         return bool(self._runtime_data.get("auto_clean", DEFAULT_AUTO_CLEAN))
 
@@ -694,6 +757,16 @@ class MHIIRClimateEntity(ClimateEntity, RestoreEntity):
 
         await self._async_send_current_state(install_position=install_position)
 
+    async def async_send_filter_reset(self) -> None:
+        """Send a one-shot filter sign reset command."""
+
+        if not self._profile.supports_filter_reset:
+            raise HomeAssistantError(
+                "This indoor unit does not support a filter sign reset"
+            )
+
+        await self._async_send_current_state(filter_reset=True)
+
     async def async_send_current_state_if_on(self) -> None:
         """Send the current IR state when the climate entity is on."""
 
@@ -704,6 +777,23 @@ class MHIIRClimateEntity(ClimateEntity, RestoreEntity):
         """Force-send the current IR state."""
 
         await self._async_send_current_state()
+
+
+def _supported_features(profile: ClimateProfile) -> ClimateEntityFeature:
+    """Return the features a profile can actually drive."""
+
+    features = (
+        ClimateEntityFeature.TARGET_TEMPERATURE
+        | ClimateEntityFeature.FAN_MODE
+        | ClimateEntityFeature.PRESET_MODE
+        | ClimateEntityFeature.SWING_MODE
+        | ClimateEntityFeature.TURN_ON
+        | ClimateEntityFeature.TURN_OFF
+    )
+    if profile.supports_horizontal_swing:
+        features |= ClimateEntityFeature.SWING_HORIZONTAL_MODE
+
+    return features
 
 
 def _optional_entity_id(value: Any) -> str | None:
@@ -721,42 +811,6 @@ def _coerce_hvac_mode(value: HVACMode | str) -> HVACMode:
         return HVACMode(value)
     except ValueError as err:
         raise HomeAssistantError(f"Unsupported HVAC mode: {value}") from err
-
-
-def _hvac_mode_to_protocol_mode(hvac_mode: HVACMode) -> str:
-    """Map Home Assistant HVAC modes to MHI protocol modes."""
-
-    if hvac_mode == HVACMode.HEAT:
-        return "heat"
-    if hvac_mode == HVACMode.DRY:
-        return "dry"
-    if hvac_mode == HVACMode.FAN_ONLY:
-        return "fan_only"
-    if hvac_mode == HVACMode.HEAT_COOL:
-        return "heat_cool"
-    return "cool"
-
-
-def _preset_available_for_hvac_mode(
-    preset_mode: str,
-    hvac_mode: HVACMode,
-) -> bool:
-    """Return whether a preset may remain active in an HVAC mode."""
-
-    if preset_mode == PRESET_NONE:
-        return True
-    if preset_mode == PRESET_ECO:
-        return hvac_mode in ECO_PRESET_HVAC_MODES
-    if preset_mode == PRESET_NIGHT_SETBACK:
-        return hvac_mode == HVACMode.HEAT
-    return hvac_mode in PRESET_HVAC_MODES
-
-
-def _clamp_temperature(value: Any) -> int:
-    """Clamp and round a target temperature to the supported MHI range."""
-
-    temperature = round(float(value))
-    return min(MAX_TARGET_TEMPERATURE, max(MIN_TARGET_TEMPERATURE, temperature))
 
 
 def _state_float(state: State, fallback: float | None) -> float | None:

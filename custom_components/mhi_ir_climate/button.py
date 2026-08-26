@@ -22,7 +22,12 @@ async def async_setup_entry(
     """Set up button entities."""
 
     runtime_data = hass.data[DOMAIN][entry.entry_id]
-    async_add_entities([MHIIRForceSendButton(entry, runtime_data)])
+
+    entities: list[ButtonEntity] = [MHIIRForceSendButton(entry, runtime_data)]
+    if runtime_data["profile"].supports_filter_reset:
+        entities.append(MHIIRFilterResetButton(entry, runtime_data))
+
+    async_add_entities(entities)
 
 
 class MHIIRForceSendButton(ButtonEntity):
@@ -49,3 +54,29 @@ class MHIIRForceSendButton(ButtonEntity):
             raise HomeAssistantError("MHI IR climate entity is not ready")
 
         await climate_entity.async_force_send_current_state()
+
+
+class MHIIRFilterResetButton(ButtonEntity):
+    """Clear the indoor unit's filter sign."""
+
+    _attr_entity_category = EntityCategory.CONFIG
+    _attr_has_entity_name = True
+    _attr_name = "Reset filter sign"
+
+    def __init__(self, entry: ConfigEntry, runtime_data: dict[str, Any]) -> None:
+        """Initialize the button."""
+
+        self._runtime_data = runtime_data
+        self._attr_unique_id = f"{entry.unique_id or entry.entry_id}_filter_reset"
+        self._attr_device_info = {
+            "identifiers": {(DOMAIN, entry.entry_id)},
+        }
+
+    async def async_press(self) -> None:
+        """Send a one-shot filter sign reset command."""
+
+        climate_entity = self._runtime_data.get("climate_entity")
+        if climate_entity is None:
+            raise HomeAssistantError("MHI IR climate entity is not ready")
+
+        await climate_entity.async_send_filter_reset()

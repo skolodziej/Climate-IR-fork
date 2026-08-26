@@ -24,6 +24,9 @@ async def async_setup_entry(
     """Set up switch entities."""
 
     runtime_data = hass.data[DOMAIN][entry.entry_id]
+    if not runtime_data["profile"].supports_auto_clean:
+        return
+
     async_add_entities([MHIIRAutoCleanSwitch(entry, runtime_data)])
 
 
