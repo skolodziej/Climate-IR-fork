@@ -68,12 +68,10 @@
       }
     }
   },
-  "repairs": {
-    "issues": {
-      "invalid_configured_entities": {
-        "title": "Invalid entities in {config_entry_title}",
-        "description": "The MHI IR Climate configuration **{config_entry_title}** references entities that are no longer available: {invalid_entities}. Open **Settings > Devices & services > MHI IR Climate**, select **Configure**, and choose valid replacements or clear optional sensors."
-      }
+  "issues": {
+    "invalid_configured_entities": {
+      "title": "Invalid entities in {config_entry_title}",
+      "description": "The MHI IR Climate configuration **{config_entry_title}** references entities that are no longer available: {invalid_entities}. Open **Settings > Devices & services > MHI IR Climate**, select **Configure**, and choose valid replacements or clear optional sensors."
     }
   }
 }

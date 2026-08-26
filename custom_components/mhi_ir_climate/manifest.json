@@ -10,6 +10,5 @@
   "requirements": [],
   "config_flow": true,
   "iot_class": "assumed_state",
-  "integration_type": "device",
-  "homeassistant": "2026.4.0"
+  "integration_type": "device"
 }
