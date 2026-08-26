@@ -139,17 +139,24 @@ For Zosung/Tuya Zigbee IR blasters, the companion Zigbee IR wrapper receives tho
 
 ## 🛠️ Development Notes
 
-Each family has its own self-contained frame builder, and `profiles.py` pairs each one with the capabilities the Home Assistant entities should expose, so the platforms stay free of protocol branching:
+The integration is built so that a new remote family is a new file, not a change to the platforms. A **profile** owns one family — the vocabularies its entities may offer, the rules the family imposes, and the encoder that turns state into a frame. The climate entity, the device controls, and the config flow read all of it from the profile.
 
-- `custom_components/mhi_ir_climate/ir_protocol.py` — ZSA/Avanti, based on decoded IR captures and the original working pyscript encoder.
-- `custom_components/mhi_ir_climate/fd_protocol.py` — FD series, documented in [docs/fd-series-protocol.md](docs/fd-series-protocol.md).
+- `custom_components/mhi_ir_climate/protocols/base.py` — the contract a profile implements.
+- `custom_components/mhi_ir_climate/protocols/__init__.py` — the registry; one tuple lists the families.
+- `custom_components/mhi_ir_climate/protocols/zsa.py`, `protocols/fd.py` — the two profiles.
+- `custom_components/mhi_ir_climate/ir_protocol.py` — the ZSA frame builder, based on decoded IR captures and the original working pyscript encoder.
+- `custom_components/mhi_ir_climate/fd_protocol.py` — the FD frame builder, documented in [docs/fd-series-protocol.md](docs/fd-series-protocol.md).
 
-Both keep the MHI frame manipulation local to this integration and leave IR transport and Zigbee payload encoding to Home Assistant's native infrared emitter layer.
+The frame builders are standalone and free of Home Assistant, which is what lets the capture tests run as plain unit tests. All of them keep the MHI frame manipulation local to this integration and leave IR transport and Zigbee payload encoding to Home Assistant's native infrared emitter layer.
+
+**[docs/adding-a-protocol.md](docs/adding-a-protocol.md) is the walkthrough for adding a family**, including which hooks exist for family quirks and why each one is there.
 
 Run the tests with:
 
 ```bash
 python -m unittest discover -s tests
 ```
+
+`tests/test_protocol_contract.py` runs against every registered profile, so a family added later is held to the same rules without anyone writing tests for it: defaults inside their vocabularies, unique control keys, an idempotent reconcile, and a `build_command` that encodes every value the profile advertises.
 
 `tests/test_fd_protocol.py` rebuilds all 24 captured FD frames from the builder and cross-checks its capture table against the one in `docs/fd-series-protocol.md`, so both an encoding change and a transcription slip fail immediately. It also pins the encoding to the bit masks used by [ToniA/arduino-heatpumpir](https://github.com/ToniA/arduino-heatpumpir) for the related FDTCxxVF units, an independent implementation of the same frame.

@@ -15,10 +15,6 @@ CONF_TEMPERATURE_SENSOR = "temperature_sensor"
 
 DEFAULT_NAME = "MHI Air Conditioner"
 
-PROTOCOL_ZSA = "zsa"
-PROTOCOL_FD = "fd"
-PROTOCOLS = (PROTOCOL_ZSA, PROTOCOL_FD)
-DEFAULT_PROTOCOL = PROTOCOL_ZSA
 
 ATTR_INFRARED_EMITTER_ENTITY_ID = "infrared_emitter_entity_id"
 ATTR_LAST_ON_HVAC_MODE = "last_on_hvac_mode"

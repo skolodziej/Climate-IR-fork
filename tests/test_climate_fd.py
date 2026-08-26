@@ -207,7 +207,7 @@ class FDClimateEntityTest(unittest.IsolatedAsyncioTestCase):
         entity = self._entity()
         entity._attr_hvac_mode = HVACMode.COOL
 
-        await entity.async_send_filter_reset()
+        await entity.async_send_one_shot("filter_reset")
 
         bits = self._sent_bits()
         self.assertEqual(bits[15], "1")
@@ -241,7 +241,7 @@ class FDClimateEntityTest(unittest.IsolatedAsyncioTestCase):
 
         self.assertEqual(entity._attr_hvac_mode, HVACMode.COOL)
         self.assertEqual(entity._attr_swing_mode, "Down-Middle")
-        self.assertEqual(entity._last_louver_position, "Down-Middle")
+        self.assertEqual(entity._last_swing_mode, "Down-Middle")
         self.assertEqual(entity._attr_preset_mode, "Silent")
         self.assertEqual(entity._attr_target_temperature, 23)
 

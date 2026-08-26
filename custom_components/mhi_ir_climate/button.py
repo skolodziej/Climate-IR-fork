@@ -1,4 +1,8 @@
-"""Button entities for MHI IR Climate."""
+"""Button entities for MHI IR Climate.
+
+Every family gets the force-send button; the rest come from the ButtonControls
+a protocol profile declares.
+"""
 
 from __future__ import annotations
 
@@ -12,6 +16,7 @@ from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import DOMAIN
+from .protocols import ButtonControl
 
 
 async def async_setup_entry(
@@ -24,17 +29,32 @@ async def async_setup_entry(
     runtime_data = hass.data[DOMAIN][entry.entry_id]
 
     entities: list[ButtonEntity] = [MHIIRForceSendButton(entry, runtime_data)]
-    if runtime_data["profile"].supports_filter_reset:
-        entities.append(MHIIRFilterResetButton(entry, runtime_data))
+    entities.extend(
+        MHIIROneShotButton(entry, runtime_data, control)
+        for control in runtime_data["profile"].controls()
+        if isinstance(control, ButtonControl)
+    )
 
     async_add_entities(entities)
 
 
-class MHIIRForceSendButton(ButtonEntity):
-    """Force-send the current climate IR command."""
+class _MHIIRButton(ButtonEntity):
+    """Shared plumbing for the integration's buttons."""
 
     _attr_entity_category = EntityCategory.CONFIG
     _attr_has_entity_name = True
+
+    def _climate_entity(self) -> Any:
+        climate_entity = self._runtime_data.get("climate_entity")
+        if climate_entity is None:
+            raise HomeAssistantError("MHI IR climate entity is not ready")
+
+        return climate_entity
+
+
+class MHIIRForceSendButton(_MHIIRButton):
+    """Force-send the current climate IR command."""
+
     _attr_name = "Force send IR command"
 
     def __init__(self, entry: ConfigEntry, runtime_data: dict[str, Any]) -> None:
@@ -42,41 +62,40 @@ class MHIIRForceSendButton(ButtonEntity):
 
         self._runtime_data = runtime_data
         self._attr_unique_id = f"{entry.unique_id or entry.entry_id}_force_send"
-        self._attr_device_info = {
-            "identifiers": {(DOMAIN, entry.entry_id)},
-        }
+        self._attr_device_info = {"identifiers": {(DOMAIN, entry.entry_id)}}
 
     async def async_press(self) -> None:
         """Force-send the current IR command."""
 
-        climate_entity = self._runtime_data.get("climate_entity")
-        if climate_entity is None:
-            raise HomeAssistantError("MHI IR climate entity is not ready")
-
-        await climate_entity.async_force_send_current_state()
+        await self._climate_entity().async_force_send_current_state()
 
 
-class MHIIRFilterResetButton(ButtonEntity):
-    """Clear the indoor unit's filter sign."""
+class MHIIROneShotButton(_MHIIRButton):
+    """A profile-declared button that sends one command."""
 
-    _attr_entity_category = EntityCategory.CONFIG
-    _attr_has_entity_name = True
-    _attr_name = "Reset filter sign"
-
-    def __init__(self, entry: ConfigEntry, runtime_data: dict[str, Any]) -> None:
+    def __init__(
+        self,
+        entry: ConfigEntry,
+        runtime_data: dict[str, Any],
+        control: ButtonControl,
+    ) -> None:
         """Initialize the button."""
 
         self._runtime_data = runtime_data
-        self._attr_unique_id = f"{entry.unique_id or entry.entry_id}_filter_reset"
-        self._attr_device_info = {
-            "identifiers": {(DOMAIN, entry.entry_id)},
-        }
+        self._control = control
+        self._attr_name = control.name
+        self._attr_unique_id = f"{entry.unique_id or entry.entry_id}_{control.key}"
+        self._attr_device_info = {"identifiers": {(DOMAIN, entry.entry_id)}}
 
     async def async_press(self) -> None:
-        """Send a one-shot filter sign reset command."""
+        """Send the single command this button stands for."""
 
-        climate_entity = self._runtime_data.get("climate_entity")
-        if climate_entity is None:
-            raise HomeAssistantError("MHI IR climate entity is not ready")
+        climate_entity = self._climate_entity()
+        if self._control.requires_power_on and climate_entity.hvac_is_off:
+            raise HomeAssistantError(
+                f"{self._control.name} needs the AC to be on"
+            )
 
-        await climate_entity.async_send_filter_reset()
+        await climate_entity.async_send_one_shot(
+            self._control.extra or self._control.key
+        )

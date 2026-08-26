@@ -14,19 +14,15 @@ from homeassistant.helpers import selector
 from homeassistant.util import slugify
 
 from .const import (
-    CONF_BASE_FRAME_HEX,
     CONF_EMITTER_ENTITY_ID,
     CONF_HUMIDITY_SENSOR,
     CONF_PROTOCOL,
     CONF_TEMPERATURE_SENSOR,
     DEFAULT_NAME,
-    DEFAULT_PROTOCOL,
     DOMAIN,
-    PROTOCOLS,
 )
 from .entity_validation import async_is_sensor_entity_valid
-from .ir_protocol import DEFAULT_BASE_FRAME_HEX
-from .profiles import ClimateProfile, get_profile
+from .protocols import DEFAULT_PROTOCOL, ClimateProfile, all_profiles, get_profile
 
 
 class MHIIRClimateConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
@@ -70,8 +66,15 @@ class MHIIRClimateConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                         default=DEFAULT_PROTOCOL,
                     ): selector.SelectSelector(
                         selector.SelectSelectorConfig(
-                            options=list(PROTOCOLS),
-                            translation_key=CONF_PROTOCOL,
+                            # Labels come from the profiles themselves, so a new
+                            # family needs no translation entry.
+                            options=[
+                                selector.SelectOptionDict(
+                                    value=profile.key,
+                                    label=f"{profile.name} ({profile.device_model})",
+                                )
+                                for profile in all_profiles()
+                            ],
                             mode=selector.SelectSelectorMode.LIST,
                         ),
                     ),
@@ -163,11 +166,7 @@ def _validate_input(
         if entity_id and not async_is_sensor_entity_valid(hass, str(entity_id)):
             errors[key] = "invalid_sensor"
 
-    if profile.requires_base_frame:
-        try:
-            profile.validate_base_frame(user_input[CONF_BASE_FRAME_HEX])
-        except ValueError:
-            errors[CONF_BASE_FRAME_HEX] = "invalid_base_frame"
+    errors.update(profile.validate_config(user_input))
 
     return errors
 
@@ -192,18 +191,35 @@ def _schema(
         ),
     }
 
-    if profile.requires_base_frame:
-        schema[
-            vol.Required(
-                CONF_BASE_FRAME_HEX,
-                default=defaults.get(CONF_BASE_FRAME_HEX, DEFAULT_BASE_FRAME_HEX),
-            )
-        ] = str
+    for field in profile.config_fields():
+        _add_profile_field(schema, field, defaults)
 
     _add_optional_entity_selector(schema, CONF_TEMPERATURE_SENSOR, defaults)
     _add_optional_entity_selector(schema, CONF_HUMIDITY_SENSOR, defaults)
 
     return vol.Schema(schema)
+
+
+def _add_profile_field(
+    schema: dict[vol.Marker, Any],
+    field: Any,
+    defaults: dict[str, Any],
+) -> None:
+    """Add a field a protocol profile asked for."""
+
+    default = defaults.get(field.key, field.default)
+    marker = (
+        vol.Required(field.key, default=default)
+        if field.required
+        else vol.Optional(field.key, description={"suggested_value": default})
+    )
+    if field.selector == "sensor":
+        schema[marker] = selector.EntitySelector(
+            selector.EntitySelectorConfig(domain="sensor"),
+        )
+        return
+
+    schema[marker] = str
 
 
 def _add_optional_entity_selector(

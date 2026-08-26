@@ -60,14 +60,6 @@
       "invalid_sensor": "Select an available sensor entity or clear this field."
     }
   },
-  "selector": {
-    "protocol": {
-      "options": {
-        "zsa": "ZSA / Avanti wall-mounted (RLA502A remotes)",
-        "fd": "FD series cassette (PJZ502A030D remote)"
-      }
-    }
-  },
   "issues": {
     "invalid_configured_entities": {
       "title": "Invalid entities in {config_entry_title}",

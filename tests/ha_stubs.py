@@ -202,6 +202,7 @@ __all__ = [
     "climate",
     "fd_protocol",
     "infrared",
+    "protocols",
     "select",
     "switch",
 ]
@@ -210,6 +211,7 @@ infrared = sys.modules["homeassistant.components.infrared"]
 fd_protocol = importlib.import_module(
     "custom_components.mhi_ir_climate.fd_protocol"
 )
+protocols = importlib.import_module("custom_components.mhi_ir_climate.protocols")
 button = importlib.import_module("custom_components.mhi_ir_climate.button")
 select = importlib.import_module("custom_components.mhi_ir_climate.select")
 switch = importlib.import_module("custom_components.mhi_ir_climate.switch")
