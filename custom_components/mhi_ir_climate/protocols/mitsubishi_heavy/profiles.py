@@ -1,4 +1,4 @@
-"""ZSA/Avanti wall-mounted units: 19-byte frames at 38 kHz."""
+"""Mitsubishi Heavy profiles."""
 
 from __future__ import annotations
 
@@ -7,9 +7,10 @@ from typing import Any, Final
 
 from homeassistant.components.climate.const import HVACMode
 
-from .. import ir_protocol
-from ..const import CONF_BASE_FRAME_HEX
-from .base import (
+from . import fdtc_frames, zj_frames, zm_frames as ir_protocol
+from ...const import CONF_BASE_FRAME_HEX
+from ..base import (
+    ButtonControl,
     ClimateProfile,
     ClimateState,
     ConfigField,
@@ -17,6 +18,7 @@ from .base import (
     EntityState,
     SelectControl,
     SwitchControl,
+    hvac_mode_to_protocol_mode,
 )
 
 SWING_3D_AUTO: Final = "3D Auto"
@@ -45,6 +47,7 @@ class ZSAProfile(ClimateProfile):
     key = "zsa"
     name = "ZSA / Avanti wall-mounted"
     device_model = "MHI ZSA Series (Avanti)"
+    verified = True
 
     fan_modes = ir_protocol.FAN_MODES
     default_fan_mode = ir_protocol.DEFAULT_FAN_MODE
@@ -255,3 +258,234 @@ class ZSAProfile(ClimateProfile):
             swing_ud=state.swing_mode,
             swing_lr=state.swing_horizontal_mode,
         )
+
+
+# High Power is verified in cool and heat and is rejected by the remote in fan
+# only. Auto is unverified but harmless; dry is left out with it.
+_POWER_PRESET_HVAC_MODES: Final = (
+    HVACMode.COOL,
+    HVACMode.HEAT,
+    HVACMode.HEAT_COOL,
+)
+
+
+class FDProfile(ClimateProfile):
+    """FDTC cassettes driven by the PJZ502A030D remote."""
+
+    key = "fd"
+    name = "FD series cassette"
+    device_model = "MHI FD Series (PJZ502A030D)"
+    verified = True
+
+    fan_modes = fdtc_frames.FAN_MODES
+    default_fan_mode = fdtc_frames.DEFAULT_FAN_MODE
+    preset_modes = fdtc_frames.PRESET_MODES
+    swing_modes = fdtc_frames.SWING_MODES
+    default_swing_mode = fdtc_frames.DEFAULT_SWING_MODE
+    min_temperature = fdtc_frames.MIN_TEMPERATURE
+    max_temperature = fdtc_frames.MAX_TEMPERATURE
+    temperature_locking_presets = (
+        fdtc_frames.PRESET_BOOST,
+        fdtc_frames.PRESET_ECO,
+    )
+
+    # --- device controls ------------------------------------------------
+    def controls(self) -> Sequence[Control]:
+        """Return the FD device-page controls."""
+
+        return (
+            ButtonControl(
+                key="filter_reset",
+                name="Reset filter sign",
+                extra="filter_reset",
+            ),
+        )
+
+    # --- behaviour ------------------------------------------------------
+    def normalize_preset_mode(self, preset_mode: str) -> str:
+        """Return the canonical name for a preset."""
+
+        return fdtc_frames.normalize_preset_mode(preset_mode)
+
+    def preset_available(self, preset_mode: str, hvac_mode: HVACMode) -> bool:
+        """Return whether a preset may be active in an HVAC mode."""
+
+        if preset_mode == fdtc_frames.PRESET_NONE:
+            return True
+        if hvac_mode == HVACMode.OFF:
+            return False
+        if preset_mode in (fdtc_frames.PRESET_BOOST, fdtc_frames.PRESET_ECO):
+            return hvac_mode in _POWER_PRESET_HVAC_MODES
+
+        return True
+
+    def preset_temperature(
+        self,
+        preset_mode: str,
+        hvac_mode: HVACMode,
+    ) -> int | None:
+        """Return the setpoint Eco writes for an HVAC mode.
+
+        High Power writes an extreme value too, but that is a request for
+        maximum output rather than a setpoint: the remote restores the
+        previous temperature when High Power ends. The frame builder applies
+        it on its own, so Home Assistant keeps showing the user's setpoint.
+        """
+
+        if preset_mode != fdtc_frames.PRESET_ECO:
+            return None
+
+        return fdtc_frames.forced_temperature(
+            hvac_mode_to_protocol_mode(hvac_mode),
+            eco=True,
+        )
+
+    def adjust_state(self, state: EntityState) -> None:
+        """Remember the louver position the swing flag is combined with."""
+
+        if state.swing_mode and state.swing_mode != fdtc_frames.DEFAULT_SWING_MODE:
+            state.last_swing_mode = state.swing_mode
+
+    # --- encoding -------------------------------------------------------
+    def build_command(self, state: ClimateState) -> Any:
+        """Build an FD IR command.
+
+        The unit treats Silent, Night Setback, High Power and Eco as
+        independent bits, but a Home Assistant preset is single-select, so
+        exactly one of them is ever set here.
+        """
+
+        preset_mode = fdtc_frames.normalize_preset_mode(state.preset_mode)
+
+        return fdtc_frames.build_fd_ir_command(
+            state.mode,
+            state.temperature,
+            state.power_on,
+            fan_mode=state.fan_mode,
+            swing_mode=state.swing_mode or fdtc_frames.DEFAULT_SWING_MODE,
+            louver_position=_louver_position(state.last_swing_mode),
+            silent=preset_mode == fdtc_frames.PRESET_SILENT,
+            night_setback=preset_mode == fdtc_frames.PRESET_NIGHT_SETBACK,
+            high_power=preset_mode == fdtc_frames.PRESET_BOOST,
+            eco=preset_mode == fdtc_frames.PRESET_ECO,
+            filter_reset=bool(state.extras.get("filter_reset", False)),
+        )
+
+
+def _louver_position(last_swing_mode: str | None) -> str:
+    """Return a fixed louver position, never the swing toggle itself.
+
+    `last_swing_mode` is whatever the entity last held, so it may legitimately
+    be the swing value rather than a position.
+    """
+
+    if not last_swing_mode or last_swing_mode == fdtc_frames.DEFAULT_SWING_MODE:
+        return fdtc_frames.DEFAULT_LOUVER_POSITION
+
+    return last_swing_mode
+
+
+class _ZJFamilyProfile(ClimateProfile):
+    """Shared behaviour for the 11-byte SRK variants (ZJ, ZMP, ZEA).
+
+    Unverified against hardware: built from the reference description only.
+    """
+
+    variant: Any = None
+
+    min_temperature = zj_frames.MIN_TEMPERATURE
+    max_temperature = zj_frames.MAX_TEMPERATURE
+    preset_modes = ("none",)
+
+    @property
+    def fan_modes(self) -> tuple:
+        """Return the fan speeds this variant encodes."""
+
+        return tuple(self.variant.fan_codes)
+
+    @property
+    def default_fan_mode(self) -> str:
+        """Auto is the first entry in every variant's table."""
+
+        return zj_frames.FAN_AUTO
+
+    @property
+    def swing_modes(self) -> tuple:
+        """Return the vertical positions this variant encodes."""
+
+        return tuple(self.variant.swing_codes)
+
+    @property
+    def swing_horizontal_modes(self) -> tuple:
+        """Return the horizontal positions this variant encodes."""
+
+        return tuple(self.variant.swing_h_codes)
+
+    @property
+    def default_swing_mode(self) -> str:
+        """Default to the stopped louver."""
+
+        return zj_frames.SWING_STOP
+
+    @property
+    def default_swing_horizontal_mode(self) -> str:
+        """Default to the stopped louver."""
+
+        return zj_frames.SWING_H_STOP
+
+    def controls(self) -> Sequence[Control]:
+        """These variants carry a clean-cycle flag in every frame."""
+
+        return (SwitchControl(key="clean", name="Clean", default=False),)
+
+    def normalize_preset_mode(self, preset_mode: str) -> str:
+        """This family has no presets beyond none."""
+
+        normalized = str(preset_mode).strip().lower()
+        if normalized != "none":
+            raise ValueError(f"Unknown preset mode: {preset_mode}")
+
+        return "none"
+
+    def build_command(self, state: ClimateState) -> Any:
+        """Build an 11-byte Mitsubishi Heavy command."""
+
+        return zj_frames.build_command(
+            self.variant,
+            state.mode,
+            state.temperature,
+            state.power_on,
+            fan_mode=state.fan_mode,
+            swing_mode=state.swing_mode or self.default_swing_mode,
+            swing_horizontal_mode=(
+                state.swing_horizontal_mode or self.default_swing_horizontal_mode
+            ),
+            clean=bool(state.options.get("clean", False)),
+        )
+
+
+class ZJProfile(_ZJFamilyProfile):
+    """SRKxxZJ-S units, remote RKX502A001C."""
+
+    key = "mhi_zj"
+    name = "SRK ZJ-S wall-mounted"
+    device_model = "MHI SRK ZJ-S Series"
+    variant = zj_frames.ZJ
+
+
+class ZMPProfile(_ZJFamilyProfile):
+    """SRK ZMP variant, which uses its own fan-only code."""
+
+    key = "mhi_zmp"
+    name = "SRK ZMP wall-mounted"
+    device_model = "MHI SRK ZMP Series"
+    variant = zj_frames.ZMP
+
+
+class ZEAProfile(_ZJFamilyProfile):
+    """SRK ZEA variant, with four fan speeds and wider air direction codes."""
+
+    key = "mhi_zea"
+    name = "SRK ZEA wall-mounted"
+    device_model = "MHI SRK ZEA Series"
+    variant = zj_frames.ZEA

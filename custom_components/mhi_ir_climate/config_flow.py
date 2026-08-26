@@ -71,7 +71,7 @@ class MHIIRClimateConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                             options=[
                                 selector.SelectOptionDict(
                                     value=profile.key,
-                                    label=f"{profile.name} ({profile.device_model})",
+                                    label=_profile_label(profile),
                                 )
                                 for profile in all_profiles()
                             ],
@@ -146,6 +146,13 @@ class MHIIRClimateOptionsFlow(config_entries.OptionsFlow):
             errors=errors,
             description_placeholders={"model": profile.device_model},
         )
+
+
+def _profile_label(profile: ClimateProfile) -> str:
+    """Label a family, flagging the ones nobody has confirmed on hardware."""
+
+    label = f"{profile.name} ({profile.device_model})"
+    return label if profile.verified else f"{label} — untested"
 
 
 def _validate_input(

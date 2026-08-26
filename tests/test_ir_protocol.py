@@ -28,7 +28,9 @@ PROTOCOL_PATH = (
     Path(__file__).parents[1]
     / "custom_components"
     / "mhi_ir_climate"
-    / "ir_protocol.py"
+    / "protocols"
+    / "mitsubishi_heavy"
+    / "zm_frames.py"
 )
 SPEC = importlib.util.spec_from_file_location(
     "mhi_ir_protocol_under_test", PROTOCOL_PATH

@@ -137,6 +137,9 @@ class ClimateProfile:
     name: str = ""
     manufacturer: str = "Mitsubishi Heavy Industries"
     device_model: str = ""
+    #: True only once frames have been confirmed against real hardware.
+    #: Profiles derived from a reference implementation start out False.
+    verified: bool = False
 
     # --- what the entity may offer --------------------------------------
     hvac_modes: tuple = DEFAULT_HVAC_MODES

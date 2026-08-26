@@ -33,7 +33,9 @@ PROTOCOL_PATH = (
     Path(__file__).parents[1]
     / "custom_components"
     / "mhi_ir_climate"
-    / "fd_protocol.py"
+    / "protocols"
+    / "mitsubishi_heavy"
+    / "fdtc_frames.py"
 )
 SPEC = importlib.util.spec_from_file_location("mhi_fd_protocol_under_test", PROTOCOL_PATH)
 assert SPEC is not None and SPEC.loader is not None

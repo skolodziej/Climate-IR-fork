@@ -209,7 +209,7 @@ __all__ = [
 
 infrared = sys.modules["homeassistant.components.infrared"]
 fd_protocol = importlib.import_module(
-    "custom_components.mhi_ir_climate.fd_protocol"
+    "custom_components.mhi_ir_climate.protocols.mitsubishi_heavy.fdtc_frames"
 )
 protocols = importlib.import_module("custom_components.mhi_ir_climate.protocols")
 button = importlib.import_module("custom_components.mhi_ir_climate.button")

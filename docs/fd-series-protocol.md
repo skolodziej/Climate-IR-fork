@@ -292,7 +292,7 @@ preset. Home Assistant's `preset_mode` is single-select, so the integration only
 ever sends one of them.
 
 `tests/test_fd_protocol.py` reproduces every capture in this table from the frame
-builder in `custom_components/mhi_ir_climate/fd_protocol.py`, and cross-checks the
+builder in `custom_components/mhi_ir_climate/protocols/mitsubishi_heavy/fdtc_frames.py`, and cross-checks the
 table in this document against the one in the test so a transcription slip in either
 place fails the suite.
 

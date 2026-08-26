@@ -143,9 +143,9 @@ The integration is built so that a new remote family is a new file, not a change
 
 - `custom_components/mhi_ir_climate/protocols/base.py` — the contract a profile implements.
 - `custom_components/mhi_ir_climate/protocols/__init__.py` — the registry; one tuple lists the families.
-- `custom_components/mhi_ir_climate/protocols/zsa.py`, `protocols/fd.py` — the two profiles.
-- `custom_components/mhi_ir_climate/ir_protocol.py` — the ZSA frame builder, based on decoded IR captures and the original working pyscript encoder.
-- `custom_components/mhi_ir_climate/fd_protocol.py` — the FD frame builder, documented in [docs/fd-series-protocol.md](docs/fd-series-protocol.md).
+- `custom_components/mhi_ir_climate/protocols/mitsubishi_heavy/`, `protocols/mitsubishi_electric/` — one package per vendor, each listing its profiles.
+- `custom_components/mhi_ir_climate/protocols/mitsubishi_heavy/zm_frames.py` — the ZSA frame builder, based on decoded IR captures and the original working pyscript encoder.
+- `custom_components/mhi_ir_climate/protocols/mitsubishi_heavy/fdtc_frames.py` — the FD frame builder, documented in [docs/fd-series-protocol.md](docs/fd-series-protocol.md).
 
 The frame builders are standalone and free of Home Assistant, which is what lets the capture tests run as plain unit tests. All of them keep the MHI frame manipulation local to this integration and leave IR transport and Zigbee payload encoding to Home Assistant's native infrared emitter layer.
 

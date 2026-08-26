@@ -1,7 +1,7 @@
-"""Registry of the supported remote families.
+"""Registry of the supported remote families, grouped by vendor.
 
-To add a family, drop a module next to this one that defines a
-`ClimateProfile` subclass, and add it to `_PROFILE_CLASSES` below. The
+To add a family, drop a module in the vendor package (or create a new vendor
+package next to them) and list its profile in that package's `PROFILES`. The
 platforms, the config flow, and the device controls pick it up from there.
 Imports are explicit rather than discovered from disk, so nothing scans the
 filesystem while Home Assistant is starting up.
@@ -11,6 +11,7 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 
+from . import mitsubishi_electric, mitsubishi_heavy
 from .base import (
     ButtonControl,
     ClimateProfile,
@@ -22,18 +23,22 @@ from .base import (
     SwitchControl,
     hvac_mode_to_protocol_mode,
 )
-from .fd import FDProfile
-from .zsa import ZSAProfile
 
-_PROFILE_CLASSES: tuple = (
-    ZSAProfile,
-    FDProfile,
+#: Vendor packages, in the order their families are offered.
+VENDORS: tuple = (
+    mitsubishi_heavy,
+    mitsubishi_electric,
 )
 
-_PROFILES: dict = {profile.key: profile for profile in map(lambda cls: cls(), _PROFILE_CLASSES)}
+_PROFILES: dict = {
+    profile.key: profile
+    for profile in (
+        cls() for vendor in VENDORS for cls in vendor.PROFILES
+    )
+}
 
 #: The family used by config entries created before families existed.
-DEFAULT_PROTOCOL: str = ZSAProfile.key
+DEFAULT_PROTOCOL: str = mitsubishi_heavy.ZSAProfile.key
 
 
 def all_profiles() -> Sequence[ClimateProfile]:
@@ -64,6 +69,7 @@ __all__ = [
     "EntityState",
     "SelectControl",
     "SwitchControl",
+    "VENDORS",
     "all_profiles",
     "get_profile",
     "hvac_mode_to_protocol_mode",

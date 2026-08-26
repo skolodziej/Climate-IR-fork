@@ -6,6 +6,12 @@ variation across manufacturers is wider still — the reference collection at
 about forty families behind a single `send(power, mode, fan, temperature,
 swingV, swingH)` call. Everything past those six values differs per family.
 
+> **Licensing.** That reference is GPL-2.0 and this project is MIT, so it is
+> used here as *documentation*: the protocol facts — timings, bit positions,
+> value codes — are functional descriptions rather than protectable
+> expression, and the implementations in this repository are our own. Do not
+> copy code or byte templates out of it verbatim.
+
 This integration is built around that shape. A **profile** owns one remote
 family: the vocabularies its entities may offer, the rules the family imposes,
 and the encoder that turns state into a frame. The climate entity, the device
@@ -17,9 +23,9 @@ family does not touch them.
 | File | Role |
 |---|---|
 | `protocols/base.py` | The contract: `ClimateProfile`, `ClimateState`, `EntityState`, the control and config descriptors |
-| `protocols/__init__.py` | The registry. One tuple lists the families |
-| `protocols/<family>.py` | One profile |
-| `<family>_protocol.py` | The frame builder, standalone and free of Home Assistant |
+| `protocols/__init__.py` | The registry. One tuple lists the vendor packages |
+| `protocols/<vendor>/profiles.py` | The vendor's profiles |
+| `protocols/<vendor>/<family>_frames.py` | The frame builder, standalone and free of Home Assistant |
 | `tests/test_protocol_contract.py` | Contract tests that run against every registered profile |
 
 Keeping the frame builder separate from the profile matters: it can be
@@ -91,14 +97,17 @@ and the entity drops the swing control and its feature flag.
 
 ## Step 3: register it
 
-```python
-# protocols/__init__.py
-from .my_family import MyProfile
+Profiles are grouped by vendor. Add yours to the vendor package's `PROFILES`:
 
-_PROFILE_CLASSES = (ZSAProfile, FDProfile, MyProfile)
+```python
+# protocols/mitsubishi_electric/__init__.py
+from .profiles import MyProfile
+
+PROFILES = (..., MyProfile)
 ```
 
-That is the whole wiring. The config flow picks the family up in its first
+A new vendor is a new package next to the existing ones, listed in `VENDORS`
+in `protocols/__init__.py`. That is the whole wiring. The config flow picks the family up in its first
 step, labelled from `name` and `device_model` — no translation entry needed.
 
 ## The hooks, and when to reach for them
@@ -136,6 +145,14 @@ powers the unit off. ZSA starts a clean cycle this way.
 
 **`should_send_after_control_change()`** — whether a changed control needs a
 command right now. The default sends while the unit is on.
+
+## Say whether it is verified
+
+`ClimateProfile.verified` defaults to `False`. Leave it there until frames
+have been confirmed against real hardware — the family picker appends
+"untested" to the label, so nobody picks it believing it was tried. Ten of the
+twelve profiles shipped today are in that state: they follow the reference
+description exactly, and no one has watched a unit respond.
 
 ## Step 4: tests
 
