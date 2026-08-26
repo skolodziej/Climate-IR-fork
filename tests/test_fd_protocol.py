@@ -459,5 +459,98 @@ class FDFrameEncodingTest(unittest.TestCase):
             fd_protocol.build_frame_bits("cool", 24, True, swing_mode="Sideways")
 
 
+# Bit masks taken from ToniA/arduino-heatpumpir's MitsubishiHeavyFDTCHeatpumpIR,
+# which drives FDTCxxVF units with the older PJA502A704AA remote. It is an
+# independent implementation of the same frame, so pinning the encoding to it
+# guards against a systematic misreading of our own captures.
+TONIA_MODE_MASKS = {
+    "heat_cool": 0x00,
+    "dry": 0x10,
+    "cool": 0x20,
+    "heat": 0x40,
+    "fan_only": 0x30,
+}
+TONIA_LOUVER_MASKS = {
+    "Up": 0x00,
+    "Up-Middle": 0x10,
+    "Down-Middle": 0x20,
+    "Down": 0x30,
+}
+TONIA_MODE_FIELD = 0x70
+TONIA_POWER_MASK = 0x80
+TONIA_TEMPERATURE_FIELD = 0x0F
+TONIA_LOUVER_FIELD = 0x30
+TONIA_SWING_MASK = 0x40
+TONIA_FILTER_MASK = 0x80
+
+
+def _block1_bytes(bits: str) -> list:
+    """Return block 1 as ToniA sees it: four bytes, each transmitted LSB first."""
+
+    return [
+        sum(int(bit) << index for index, bit in enumerate(bits[offset:offset + 8]))
+        for offset in range(0, 32, 8)
+    ]
+
+
+class ToniACrossCheckTest(unittest.TestCase):
+    """Check the encoding against a second, independent implementation."""
+
+    def _bytes(self, **kwargs) -> list:
+        kwargs.setdefault("mode", "cool")
+        kwargs.setdefault("temperature_c", 24)
+        kwargs.setdefault("power_on", True)
+        kwargs.setdefault("swing_mode", "Up")
+        return _block1_bytes(fd_protocol.build_frame_bits(**kwargs))
+
+    def test_mode_field_matches(self) -> None:
+        for mode, mask in TONIA_MODE_MASKS.items():
+            with self.subTest(mode=mode):
+                byte2 = self._bytes(mode=mode)[2]
+                self.assertEqual(byte2 & TONIA_MODE_FIELD, mask)
+
+    def test_power_bit_matches(self) -> None:
+        self.assertEqual(self._bytes(power_on=True)[2] & TONIA_POWER_MASK, 0x80)
+        self.assertEqual(self._bytes(power_on=False)[2] & TONIA_POWER_MASK, 0x00)
+
+    def test_temperature_nibble_matches(self) -> None:
+        for temperature in range(18, 31):
+            with self.subTest(temperature=temperature):
+                byte2 = self._bytes(temperature_c=temperature)[2]
+                self.assertEqual(
+                    byte2 & TONIA_TEMPERATURE_FIELD,
+                    (temperature - 16) & 0x0F,
+                )
+
+    def test_louver_field_matches(self) -> None:
+        for swing_mode, mask in TONIA_LOUVER_MASKS.items():
+            with self.subTest(swing_mode=swing_mode):
+                byte3 = self._bytes(swing_mode=swing_mode)[3]
+                self.assertEqual(byte3 & TONIA_LOUVER_FIELD, mask)
+
+    def test_swing_and_filter_bits_match(self) -> None:
+        idle = self._bytes()[1]
+        self.assertEqual(idle & TONIA_SWING_MASK, 0x00)
+        self.assertEqual(idle & TONIA_FILTER_MASK, 0x00)
+
+        swinging = self._bytes(swing_mode="Swing", louver_position="Up")[1]
+        self.assertEqual(swinging & TONIA_SWING_MASK, TONIA_SWING_MASK)
+
+        filtering = self._bytes(filter_reset=True)[1]
+        self.assertEqual(filtering & TONIA_FILTER_MASK, TONIA_FILTER_MASK)
+
+    def test_model_identifier_byte(self) -> None:
+        """The document records 0x0D for this remote, 0x0A/0x0B for ToniA's."""
+
+        self.assertEqual(self._bytes()[0], 0x0D)
+
+    def test_legacy_fan_speed_field_is_left_alone(self) -> None:
+        """This remote never writes the older fan field in bits 13-14."""
+
+        for fan_mode in fd_protocol.FAN_MODES:
+            with self.subTest(fan_mode=fan_mode):
+                self.assertEqual(self._bytes(fan_mode=fan_mode)[1] & 0x30, 0x00)
+
+
 if __name__ == "__main__":
     unittest.main()

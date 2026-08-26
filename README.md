@@ -25,7 +25,7 @@ The FD protocol is documented in [docs/fd-series-protocol.md](docs/fd-series-pro
 - A native Home Assistant `infrared` emitter entity in the room with the air conditioner.
 - For Tuya/Zosung-style Zigbee IR blasters, install and configure [IR Wrapper for Zigbee IR Blasters](https://github.com/tomer2526/IR-Wrapper-for-Zigbee-IR-Bluster) first.
 - A supported indoor unit: a ZSA/Avanti model using the 19-byte command frame, or an FD-series unit driven by a PJZ502A030D remote.
-- For FD-series units, an emitter that can transmit at **36 kHz**. Blasters hard-wired to 38 kHz will not reach the unit.
+- For FD-series units, an emitter that can transmit at **36 kHz**, which is what the integration sends. The same protocol is documented working at 38 kHz on related units, and the receivers are broadband, so a 38 kHz-only blaster may still reach the unit — but 36 kHz is the verified figure.
 
 ## 🧪 Tested Hardware
 
@@ -152,4 +152,4 @@ Run the tests with:
 python -m unittest discover -s tests
 ```
 
-`tests/test_fd_protocol.py` rebuilds all 24 captured FD frames from the builder and cross-checks its capture table against the one in `docs/fd-series-protocol.md`, so both an encoding change and a transcription slip fail immediately.
+`tests/test_fd_protocol.py` rebuilds all 24 captured FD frames from the builder and cross-checks its capture table against the one in `docs/fd-series-protocol.md`, so both an encoding change and a transcription slip fail immediately. It also pins the encoding to the bit masks used by [ToniA/arduino-heatpumpir](https://github.com/ToniA/arduino-heatpumpir) for the related FDTCxxVF units, an independent implementation of the same frame.

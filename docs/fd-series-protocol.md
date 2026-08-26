@@ -23,7 +23,7 @@ there only partially applies: frame length, fan speed and model identifier diffe
 
 | Parameter | Value |
 |---|---|
-| Carrier frequency | **36 kHz** (not 38 kHz) |
+| Carrier frequency | 36 kHz (ToniA's FDTC module transmits at 38 kHz, see section 7) |
 | Modulation | Pulse distance (constant mark, the space encodes the bit) |
 | Header | 6000 µs mark, 7500 µs space |
 | Bit 0 | 500 µs mark, 1500 µs space |
@@ -33,8 +33,11 @@ there only partially applies: frame length, fan speed and model identifier diffe
 | Total duration | approx. 480 ms |
 | Repeats | none; one key press sends exactly one frame |
 
-The 36 kHz carrier is the most common stumbling block: a blaster hard-wired to
-38 kHz gets no response from the unit even though the timings are correct.
+There are two figures for the carrier: joedirium documents 36 kHz, while ToniA's
+library transmits the same protocol at 38 kHz. IR receivers in air conditioners are
+broadband, so both are likely to work — if a blaster gets no response, the other
+frequency is worth a try. This integration transmits at 36 kHz, which is verified
+against an FDTC40VH.
 
 ### Raw sequence
 
@@ -89,7 +92,7 @@ has the value 1.
 | Bits | Field | Encoding | Status |
 |---|---|---|---|
 | 1–12 | Model identifier | constant `101100000000` | verified (constant across all captures) |
-| 13–14 | — | constant `00` | unknown |
+| 13–14 | **Fan speed (legacy)** | LSB first, 0–2 = speed 1–3 | from ToniA's module, see section 7 |
 | 15 | **Swing** | 0 = off, 1 = louvers swing up/down | verified |
 | 16 | **Filter** | 0 = off, 1 = reset filter sign | verified |
 | 17–20 | **Target temperature** | LSB first, `temp_C = 16 + value` | verified |
@@ -307,9 +310,15 @@ Full frame 1 as a raw sequence for direct comparison:
 
 ## 6. Open points
 
-- Bits 13–14, 25–28, 31–32 in block 1 and 68–79, 81–86, 90–96 in block 3 are
-  constant across all captures. Candidates are on/off timers, the filter sign
-  message, the weekly program and addressing of several indoor units in one room.
+- Bits 25–28, 31–32 in block 1 and 68–79, 81–86, 90–96 in block 3 are constant
+  across all captures. Candidates are on/off timers, the weekly program and
+  addressing of several indoor units in one room.
+- ToniA's module sets bit 31, this remote leaves it at 0. What it does, and what
+  the difference means, is unclear.
+- Whether the indoor unit also accepts the short 64-bit frame that ToniA's module
+  sends is untested on this unit.
+- Whether the legacy fan speed in bits 13–14 has any effect with this remote is
+  untested; the remote always leaves the field at `00`.
 - Block 5 is entirely unclear. The complementary byte pair `0x40`/`0xBF` suggests
   another data field.
 - Night Setback combined with Power = 1 is untested.
@@ -323,3 +332,55 @@ Full frame 1 as a raw sequence for direct comparison:
 
 Every open field can be resolved the same way: record two frames that differ in
 exactly one setting and compare the differing bit positions.
+
+---
+
+## 7. Cross-check against ToniA/arduino-heatpumpir
+
+The library <https://github.com/ToniA/arduino-heatpumpir> contains a
+`MitsubishiHeavyFDTCHeatpumpIR` module for **Mitsubishi Heavy FDTCxxVF** units with
+the **PJA502A704AA** remote — the same device family, an older remote. It confirms
+the analysis in this document from an independent source.
+
+### Confirmed
+
+- Identical timings: header 6000/7500, bit mark 500, one 3500, zero 1500, trailer
+  mark 500 / space 7500 / mark 500.
+- Temperature: `(temperatureCmd - 16) & 0x0F`, valid 18–30 °C. The offset of 16 is
+  therefore independently corroborated.
+- Operating mode and power as a bit mask of one byte: dry `0x10`, cool `0x20`, heat
+  `0x40`, fan `0x30`, auto `0x00`, power on `0x80`. Converted to bit positions those
+  are exactly bits 21–24 as documented here.
+- Louver position: `0x00` top, `0x10`, `0x20`, `0x30` bottom — bits 29–30.
+- Swing: `0x40` in byte 1 — bit 15.
+- Bytes are transmitted **LSB first**, and the second four bytes are the complements
+  of the first four.
+
+`tests/test_fd_protocol.py` asserts these masks against frames from the builder, so
+the encoding stays pinned to this second source and not only to our own captures.
+
+### Byte view
+
+The LSB-first ordering gives a more convenient view of block 1:
+
+| Byte | Bits | Content |
+|---|---|---|
+| 0 | 1–8 | model identifier, `0x0D` on this remote |
+| 1 | 9–16 | legacy fan speed (`0x10`/`0x20`), swing (`0x40`), filter (`0x80`) |
+| 2 | 17–24 | temperature (`0x0F`), operating mode (`0x70`), power (`0x80`) |
+| 3 | 25–32 | louver position (`0x30`) |
+
+### Differences from this remote
+
+| | PJA502A704AA (ToniA) | PJZ502A030D (this document) |
+|---|---|---|
+| Frame length | 64 bit / 8 byte | 160 bit / 20 byte |
+| Byte 0 | `0x0A`, or `0x0B` | `0x0D` |
+| Bit 31 | set | 0 |
+| Fan speed | bits 13–14, three speeds | bits 65–67, four speeds plus auto |
+| Silent, Eco, High Power, Night, Filter | not supported | bits 16, 80, 87, 88, 89 |
+| Carrier frequency | 38 kHz | 36 kHz per joedirium |
+
+ToniA's frame corresponds exactly to blocks 1 and 2 of this document. Blocks 3 to 5
+are apparently the extension of the newer remote. Since his module works on FDTCxxVF
+units, the indoor unit probably accepts the short frame as well — untested here.
